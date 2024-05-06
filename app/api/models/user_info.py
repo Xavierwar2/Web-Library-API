@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from ..common.utils import format_datetime_to_json
 from ..models import db
 
 
@@ -35,8 +35,8 @@ class UserModel(db.Model):
             "sex": self.sex,
             "age": self.age,
             "avatar_url": self.avatar_url,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
+            "created_at": format_datetime_to_json(self.created_at),
+            "updated_at": format_datetime_to_json(self.updated_at),
         }
 
     # 按 username 查找用户

@@ -15,6 +15,17 @@ class LoginModel(db.Model):
     created_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, comment='创建时间')
     updated_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新时间')
 
+    # # 用户字典
+    # def dict(self):
+    #     return {
+    #         "user_id": self.user_id,
+    #         "username": self.username,
+    #         "password": self.password,
+    #         "salt": self.salt,
+    #         "created_at": format_datetime_to_json(self.created_at),
+    #         "updated_at": format_datetime_to_json(self.updated_at),
+    #     }
+
     # 新增用户
     def add_user(self):
         db.session.add(self)
