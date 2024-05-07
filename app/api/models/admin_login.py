@@ -3,15 +3,16 @@ from ..models import db
 from ..common.utils import format_datetime_to_json
 
 
-class UserLoginModel(db.Model):
+class AdminLoginModel(db.Model):
     """
-    用户端登陆信息表，用于验证登录信息
+    后台登陆信息表，用于验证登录信息及权限
     """
-    __tablename__ = "user_login"
-    user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    __tablename__ = "admin_login"
+    admin_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     salt = db.Column(db.String(255), comment='salt')
+    is_super_admin = db.Column(db.Integer, default=0, nullable=False)
     created_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, comment='创建时间')
     updated_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新时间')
 

@@ -7,10 +7,10 @@ from ..common.utils import res
 class UserService(Resource):
     @jwt_required()
     def get(self):
-        user_list = UserModel.get_all_user()
+        user_info_list = UserModel.find_all()
         result = []
-        for user in user_list:
-            result.append(user.dict())
+        for user_info in user_info_list:
+            result.append(user_info.dict())
 
         return res(data=result)
 

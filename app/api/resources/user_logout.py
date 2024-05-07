@@ -4,7 +4,7 @@ from ..models.revoked_token import RevokedTokenModel
 from ..common.utils import res
 
 
-class Logout(Resource):
+class UserLogout(Resource):
     @jwt_required()
     def post(self):
         jti = get_jwt()['jti']

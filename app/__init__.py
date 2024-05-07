@@ -10,7 +10,8 @@ from .api import api_blueprint
 from .manage import migrate
 from .api.models.user_info import UserModel
 from .api.models.revoked_token import RevokedTokenModel
-from .api.models.user_login import LoginModel
+from .api.models.user_login import UserLoginModel
+from .api.models.admin_login import AdminLoginModel
 from .api.models.user_collect import CollectModel
 from .api.models.user_feedback import FeedbackModel
 from .api.models.book_info import BookModel

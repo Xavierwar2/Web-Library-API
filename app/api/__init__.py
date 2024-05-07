@@ -1,14 +1,17 @@
 from flask import Blueprint
 from flask_restful import Api
-from .resources.register import Register
-from .resources.login import Login
-from .resources.logout import Logout
-from .resources.user import UserService
+
+from .resources.admin_login import AdminLogin
+from .resources.user_register import UserRegister
+from .resources.user_login import UserLogin
+from .resources.user_logout import UserLogout
+from .resources.user_service import UserService
 
 api_blueprint = Blueprint('api', __name__, url_prefix="/")
 api = Api(api_blueprint)
 
-api.add_resource(Register, '/register')
-api.add_resource(Login, '/login', '/refreshToken')
-api.add_resource(Logout, '/logout')
-api.add_resource(UserService, '/getUserList')
+api.add_resource(UserRegister, '/userRegister')
+api.add_resource(UserLogin, '/userLogin', '/userRefreshToken')
+api.add_resource(AdminLogin, '/adminLogin', '/adminRefreshToken')
+api.add_resource(UserLogout, '/userLogout')
+api.add_resource(UserService, '/userInfo')

@@ -3,11 +3,11 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from werkzeug.security import check_password_hash
 
 from ..schema.register_sha import reg_args_valid
-from ..models.user_login import LoginModel
+from ..models.user_login import UserLoginModel
 from ..common.utils import res
 
 
-class Login(Resource):
+class UserLogin(Resource):
     def post(self):
         # 初始化解析器
         parser = reqparse.RequestParser()
@@ -15,11 +15,11 @@ class Login(Resource):
         reg_args_valid(parser)
         data = parser.parse_args()
         username = data['username']
-        user_tuple = LoginModel.find_by_username(username)
+        user_tuple = UserLoginModel.find_by_username(username)
         if user_tuple:
             try:
                 (user,) = user_tuple
-                password, salt = user.get_password().get('password'), user.get_password().get('salt')
+                password, salt = user.password, user.salt
                 valid = check_password_hash(password, '{}{}'.format(salt, data['password']))
                 if valid:
                     # 生成 token
