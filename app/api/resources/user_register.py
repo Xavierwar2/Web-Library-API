@@ -22,8 +22,9 @@ class UserRegister(Resource):
                 salt = uuid.uuid4().hex
                 password = generate_password_hash('{}{}'.format(salt, data['password']))
                 email = data['email']
+                status = data['status']
                 user_login = UserLoginModel(username=username, password=password, salt=salt)
-                user_info = UserModel(username=username, email=email)
+                user_info = UserModel(username=username, email=email, status=status)
                 user_login.add()
                 user_info.add()
                 return res(message="Registration is successful!")

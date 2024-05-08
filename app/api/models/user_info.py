@@ -14,6 +14,7 @@ class UserModel(db.Model):
     email = db.Column(db.String(255), nullable=False, unique=True)
     sex = db.Column(db.Integer, default=2)
     age = db.Column(db.Integer, default=0)
+    status = db.Column(db.Integer, nullable=False)
     avatar_url = db.Column(db.Text,
                            default="https://tse2-mm.cn.bing.net/th/id/OIP-C.jHUH4s7TQ4", nullable=False)
     created_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, comment='创建时间')
@@ -46,4 +47,3 @@ class UserModel(db.Model):
     @classmethod
     def find_by_username(cls, username):
         return db.session.execute(db.select(cls).filter_by(username=username)).first()
-
