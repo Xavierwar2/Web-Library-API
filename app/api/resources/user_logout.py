@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt
 from ..models.revoked_token import RevokedTokenModel
-from ..common.utils import res
+from ..utils.format import res
 
 
 class UserLogout(Resource):
@@ -14,4 +14,4 @@ class UserLogout(Resource):
             revoked_token.add()
             return res()
         except:
-            return res(success=False, message='服务器繁忙！', code=500)
+            return res(success=False, message='Server error！', code=500)

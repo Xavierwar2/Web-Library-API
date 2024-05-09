@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash
 
 from ..schema.register_sha import reg_args_valid
 from ..models.admin_login import AdminLoginModel
-from ..common.utils import res
+from ..utils.format import res
 
 
 class AdminLogin(Resource):

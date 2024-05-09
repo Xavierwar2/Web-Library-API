@@ -6,6 +6,7 @@ from flask_cors import CORS
 
 from .config import config
 from .api.models import db
+from .extensions import mail
 from .api import api_blueprint
 from .manage import migrate
 from .api.models.user_info import UserModel
@@ -37,6 +38,8 @@ def create_app(config_name):
     register_jwt_hooks(jwt)
     # 解决跨域
     CORS(app)
+    # 添加邮箱验证机制
+    mail.init_app(app)
     return app
 
 
