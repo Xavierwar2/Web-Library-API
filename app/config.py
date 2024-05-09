@@ -20,6 +20,13 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=2)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
     JWT_BLOCKLIST_TOKEN_CHECKS = ['access']
+    # 邮箱配置
+    MAIL_SERVER = "smtp.qq.com"
+    MAIL_USE_TLS = True
+    MAIL_PORT = 587
+    MAIL_USERNAME = "28038329@qq.com"
+    MAIL_PASSWORD = "dsurhonxpksvcbaj"
+    MAIL_DEFAULT_SENDER = "28038329@qq.com"
 
 
 class ProductionConfig(Config):

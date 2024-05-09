@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask_jwt_extended import jwt_required
 from ..models.user_info import UserModel
-from ..common.utils import res
+from ..utils.format import res
 
 
 class UserService(Resource):
@@ -13,4 +13,3 @@ class UserService(Resource):
             result.append(user_info.dict())
 
         return res(data=result)
-

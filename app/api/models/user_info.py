@@ -1,5 +1,5 @@
 from datetime import datetime
-from ..common.utils import format_datetime_to_json
+from ..utils.format import format_datetime_to_json
 from ..models import db
 
 
@@ -47,3 +47,8 @@ class UserModel(db.Model):
     @classmethod
     def find_by_username(cls, username):
         return db.session.execute(db.select(cls).filter_by(username=username)).first()
+
+    # 按 email 查找
+    @classmethod
+    def find_by_email(cls, email):
+        return db.session.execute(db.select(cls).filter_by(email=email)).first()

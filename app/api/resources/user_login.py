@@ -4,7 +4,7 @@ from werkzeug.security import check_password_hash
 
 from ..schema.register_sha import reg_args_valid
 from ..models.user_login import UserLoginModel
-from ..common.utils import res
+from ..utils.format import res
 
 
 class UserLogin(Resource):
@@ -15,10 +15,10 @@ class UserLogin(Resource):
         reg_args_valid(parser)
         data = parser.parse_args()
         username = data['username']
-        user_tuple = UserLoginModel.find_by_username(username)
-        if user_tuple:
+        login_tuple = UserLoginModel.find_by_username(username)
+        if login_tuple:
             try:
-                (user,) = user_tuple
+                (user,) = login_tuple
                 password, salt = user.password, user.salt
                 valid = check_password_hash(password, '{}{}'.format(salt, data['password']))
                 if valid:

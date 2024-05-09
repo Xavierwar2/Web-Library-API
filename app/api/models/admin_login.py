@@ -1,6 +1,6 @@
 from datetime import datetime
 from ..models import db
-from ..common.utils import format_datetime_to_json
+from ..utils.format import format_datetime_to_json
 
 
 class AdminLoginModel(db.Model):
@@ -16,21 +16,24 @@ class AdminLoginModel(db.Model):
     created_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, comment='创建时间')
     updated_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新时间')
 
-    # # 字典
-    # def dict(self):
-    #     return {
-    #         "user_id": self.user_id,
-    #         "username": self.username,
-    #         "password": self.password,
-    #         "salt": self.salt,
-    #         "created_at": format_datetime_to_json(self.created_at),
-    #         "updated_at": format_datetime_to_json(self.updated_at),
-    #     }
+    # 字典
+    def dict(self):
+        return {
+            "admin_id": self.admin_id,
+            "username": self.username,
+            "created_at": format_datetime_to_json(self.created_at),
+            "updated_at": format_datetime_to_json(self.updated_at),
+        }
 
     # 新增一条记录
     def add(self):
         db.session.add(self)
         db.session.commit()
+
+    # 返回所有记录
+    @classmethod
+    def find_all(cls):
+        return db.session.query(cls).all()
 
     # 按 username 查找
     @classmethod
