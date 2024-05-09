@@ -21,7 +21,8 @@ class BorrowModel(db.Model):
     username = db.Column(db.String(20), nullable=False)
     book_name = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, comment='创建时间')
-    updated_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新时间')
+    updated_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now,
+                           comment='更新时间')
 
     # 字典
     def dict(self):
@@ -40,3 +41,42 @@ class BorrowModel(db.Model):
     @classmethod
     def find_all(cls):
         return db.session.query(cls).all()
+
+    # 添加借阅项
+    @classmethod
+    def add_borrow_info(cls, user_id, book_id):
+        borrow_info = cls(
+            user_id=user_id,
+            book_id=book_id,
+            borrow_time=datetime.now(),
+            return_time=None,
+            book_status=0
+        )
+        db.session.add(borrow_info)
+        db.session.commit()
+
+    # 删除借阅项
+    @classmethod
+    def delete_borrow_info(cls, borrow_id):
+        borrow_info = cls.query.get(borrow_id)
+        if borrow_info:
+            db.session.delete(borrow_info)
+            db.session.commit()
+
+    # 更新归还时间和书籍状态
+    @classmethod
+    def update_return_time(cls, borrow_id, return_date):
+        borrow_info = cls.query.get(borrow_id)
+        if borrow_info:
+            borrow_info.return_time = return_date
+            borrow_info.book_status = 1  # 已归还
+            db.session.commit()
+
+    # 仅更新归还时间
+    @classmethod
+    def update_return_date(cls, borrow_id, return_date):
+        borrow_info = cls.query.get(borrow_id)
+        if borrow_info:
+            borrow_info.return_time = return_date
+            db.session.commit()
+
