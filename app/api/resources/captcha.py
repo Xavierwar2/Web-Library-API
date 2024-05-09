@@ -1,7 +1,6 @@
 from flask_restful import Resource, reqparse
 from flask import request
 
-from ..schema.email_verify_sha import email_verify_args_valid
 from ..utils import redis_captcha
 from ..utils.format import res
 from ...extensions import mail
@@ -13,11 +12,8 @@ import string
 class Captcha(Resource):
 
     def get(self):
-        parser = reqparse.RequestParser()
-        email_verify_args_valid(parser)
-        data = parser.parse_args()
-        mode = data['mode']
-        email = data['email']
+        email = request.args.get('email')
+        mode = request.args.get('mode', type=int)
 
         # 生成验证码
         captcha = "".join(random.sample(string.digits * 4, 4))
