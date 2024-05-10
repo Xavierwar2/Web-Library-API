@@ -6,14 +6,11 @@ from .resources.email_login import EmailLogin
 from .resources.user_register import UserRegister
 from .resources.user_login import UserLogin
 from .resources.user_logout import UserLogout
-from .resources.user_service import UserService
-from .resources.book_service import BookService
-from .resources.book_add import BookAdd
-from .resources.book_delete import BookDelete
-from .resources.book_update import BookUpdate
+from .resources.user import UserService
+from .resources.book import BookService
 
-from .resources.admin_service import AdminService
-from .resources.borrow_service import BorrowService
+from .resources.admin import AdminService
+from .resources.borrow import BorrowService
 from .resources.captcha import Captcha
 
 api_blueprint = Blueprint('api', __name__, url_prefix="/")
@@ -29,6 +26,3 @@ api.add_resource(AdminService, '/adminInfo')
 api.add_resource(BorrowService, '/borrowInfo')
 api.add_resource(Captcha, '/captcha')
 api.add_resource(BookService, '/bookInfo')
-api.add_resource(BookAdd, '/bookAdd')
-api.add_resource(BookDelete, '/bookDelete')
-api.add_resource(BookUpdate, '/bookUpdate')

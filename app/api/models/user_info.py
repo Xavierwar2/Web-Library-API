@@ -15,8 +15,9 @@ class UserModel(db.Model):
     sex = db.Column(db.Integer, default=2)
     age = db.Column(db.Integer, default=0)
     status = db.Column(db.Integer, nullable=False)
-    avatar_url = db.Column(db.Text,
-                           default="https://tse2-mm.cn.bing.net/th/id/OIP-C.jHUH4s7TQ4", nullable=False)
+    image_url = db.Column(db.Text,
+                          default="https://tse2-mm.cn.bing.net/th/id/OIP-C.jHUH4s7TQ4…ozuJgHaHa?w=188&h=188&c=7&r=0&o"
+                                  "=5&dpr=1.3&pid=1.7", nullable=False)
     created_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, comment='创建时间')
     updated_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新时间')
 
