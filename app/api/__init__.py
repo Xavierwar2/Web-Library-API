@@ -8,6 +8,7 @@ from .resources.user_login import UserLogin
 from .resources.user_logout import UserLogout
 from .resources.user import UserService
 from .resources.book import BookService
+from .resources.product import ProductService
 
 from .resources.admin import AdminService
 from .resources.borrow import BorrowService
@@ -26,3 +27,4 @@ api.add_resource(AdminService, '/adminInfo')
 api.add_resource(BorrowService, '/borrowInfo')
 api.add_resource(Captcha, '/captcha')
 api.add_resource(BookService, '/bookInfo')
+api.add_resource(ProductService, '/productInfo')
