@@ -14,7 +14,9 @@ from .resources.user import UserByUsername
 from .resources.book import BookList
 from .resources.book import Book
 from .resources.product import Product
+from .resources.product import ProductList
 from .resources.category import Category
+from .resources.category import CategoryList
 
 from .resources.admin import Admin, AdminList
 from .resources.borrow import BorrowList
@@ -39,8 +41,10 @@ api.add_resource(Borrow, '/borrowInfo/<int:borrow_id>')
 api.add_resource(Captcha, '/captcha')
 api.add_resource(BookList, '/bookInfo')
 api.add_resource(Book, '/bookInfo/<int:book_id>')
-api.add_resource(Product, '/productInfo')
-api.add_resource(Category, '/categoryInfo')
+api.add_resource(ProductList, '/productInfo')
+api.add_resource(Product, '/productInfo/<int:product_id>')
+api.add_resource(CategoryList, '/categoryInfo')
+api.add_resource(Category, '/CategoryInfo/<int:category_id>')
 api.add_resource(CommentList, '/comment')
 api.add_resource(Comment, '/comment/<int:comment_id>')
 api.add_resource(CommentByUser, '/comment/user/<int:user_id>')
