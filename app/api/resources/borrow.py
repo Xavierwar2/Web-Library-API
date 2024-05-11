@@ -1,5 +1,5 @@
 from flask_restful import Resource, reqparse
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt
 from ..models.book_info import BookModel
 from datetime import datetime
 from ..models.borrow_info import BorrowModel
@@ -58,73 +58,97 @@ class Borrow(Resource):
 
     @jwt_required()
     def delete(self, borrow_id):
-        parser = reqparse.RequestParser()
-        parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
-        data = parser.parse_args()
+        jwt_data = get_jwt()
+        role = jwt_data['role']
 
-        try:
-            borrow_info = BorrowModel.find_by_id(data['borrow_id'])
-            if not borrow_info:
-                return res(success=False, message="Borrow information not found", code=404)
+        # 管理员可以执行该操作
+        if role == 'admin':
+            parser = reqparse.RequestParser()
+            parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
+            data = parser.parse_args()
 
-            book = BookModel.find_by_id(borrow_info.book_id)
-            if not book:
-                return res(success=False, message="Book not found", code=404)
+            try:
+                borrow_info = BorrowModel.find_by_id(data['borrow_id'])
+                if not borrow_info:
+                    return res(success=False, message="Borrow information not found", code=404)
 
-            # Update book status
-            book.current_number += 1
-            book.save()
+                book = BookModel.find_by_id(borrow_info.book_id)
+                if not book:
+                    return res(success=False, message="Book not found", code=404)
 
-            borrow_info.delete()
+                # Update book status
+                book.current_number += 1
+                book.save()
 
-            return res(message="Borrow information deleted successfully!")
-        except Exception as e:
-            return res(success=False, message="Error: {}".format(e), code=500)
+                borrow_info.delete()
 
+                return res(message="Borrow information deleted successfully!")
+            except Exception as e:
+                return res(success=False, message="Error: {}".format(e), code=500)
+
+        else:
+            return res(success=False, message='Access denied.', code=403)
+        
     @jwt_required()
     def put(self, borrow_id):
-        parser = reqparse.RequestParser()
-        parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
-        parser.add_argument('return_date', type=lambda x: datetime.strptime(x, '%Y-%m-%d'), required=True,
-                            help='Return date is required')
-        data = parser.parse_args()
+        jwt_data = get_jwt()
+        role = jwt_data['role']
 
-        try:
-            borrow_info = BorrowModel.find_by_id(data['borrow_id'])
-            if not borrow_info:
-                return res(success=False, message="Borrow information not found", code=404)
+        # 管理员可以执行该操作
+        if role == 'admin':
+            parser = reqparse.RequestParser()
+            parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
+            parser.add_argument('return_date', type=lambda x: datetime.strptime(x, '%Y-%m-%d'), required=True,
+                                help='Return date is required')
+            data = parser.parse_args()
+    
+            try:
+                borrow_info = BorrowModel.find_by_id(data['borrow_id'])
+                if not borrow_info:
+                    return res(success=False, message="Borrow information not found", code=404)
+    
+                borrow_info.return_date = data['return_date']
+                borrow_info.save()
+    
+                # Update book status
+                book = BookModel.find_by_id(borrow_info.book_id)
+                if not book:
+                    return res(success=False, message="Book not found", code=404)
+    
+                book.current_number += 1
+                book.save()
+    
+                return res(message="Return date updated successfully!")
+            except Exception as e:
+                return res(success=False, message="Error: {}".format(e), code=500)
 
-            borrow_info.return_date = data['return_date']
-            borrow_info.save()
-
-            # Update book status
-            book = BookModel.find_by_id(borrow_info.book_id)
-            if not book:
-                return res(success=False, message="Book not found", code=404)
-
-            book.current_number += 1
-            book.save()
-
-            return res(message="Return date updated successfully!")
-        except Exception as e:
-            return res(success=False, message="Error: {}".format(e), code=500)
+        else:
+            return res(success=False, message='Access denied.', code=403)
 
     @jwt_required()
     def patch(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
-        parser.add_argument('return_date', type=lambda x: datetime.strptime(x, '%Y-%m-%d'), required=True,
-                            help='Return date is required')
-        data = parser.parse_args()
+        jwt_data = get_jwt()
+        role = jwt_data['role']
 
-        try:
-            borrow_info = BorrowModel.find_by_id(data['borrow_id'])
-            if not borrow_info:
-                return res(success=False, message="Borrow information not found", code=404)
+        # 管理员可以执行该操作
+        if role == 'admin':
+            parser = reqparse.RequestParser()
+            parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
+            parser.add_argument('return_date', type=lambda x: datetime.strptime(x, '%Y-%m-%d'), required=True,
+                                help='Return date is required')
+            data = parser.parse_args()
+    
+            try:
+                borrow_info = BorrowModel.find_by_id(data['borrow_id'])
+                if not borrow_info:
+                    return res(success=False, message="Borrow information not found", code=404)
+    
+                borrow_info.return_date = data['return_date']
+                borrow_info.save()
+    
+                return res(message="Return date updated successfully!")
+            except Exception as e:
+                return res(success=False, message="Error: {}".format(e), code=500)
 
-            borrow_info.return_date = data['return_date']
-            borrow_info.save()
-
-            return res(message="Return date updated successfully!")
-        except Exception as e:
-            return res(success=False, message="Error: {}".format(e), code=500)
+        else:
+            return res(success=False, message='Access denied.', code=403)
