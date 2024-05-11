@@ -6,7 +6,7 @@ from .resources.comment import Comment, CommentList, CommentByUser, CommentByBoo
 from .resources.email_login import EmailLogin
 from .resources.user_register import UserRegister
 from .resources.user_login import UserLogin
-from .resources.user_logout import UserLogout
+from .resources.logout import Logout
 from .resources.user import User
 from .resources.book import BookList
 from .resources.book import Book
@@ -24,7 +24,7 @@ api.add_resource(UserRegister, '/userRegister')
 api.add_resource(UserLogin, '/userLogin', '/userRefreshToken')
 api.add_resource(EmailLogin, '/emailLogin', '/userRefreshToken')
 api.add_resource(AdminLogin, '/adminLogin', '/adminRefreshToken')
-api.add_resource(UserLogout, '/userLogout')
+api.add_resource(Logout, '/logout')
 api.add_resource(User, '/userInfo')
 api.add_resource(Admin, '/adminInfo')
 api.add_resource(Borrow, '/borrowInfo')

@@ -29,7 +29,7 @@ class UserModel(db.Model):
             "email": self.email,
             "sex": self.sex,
             "age": self.age,
-            "avatar_url": self.avatar_url,
+            "image_url": self.image_url,
             "created_at": format_datetime_to_json(self.created_at),
             "updated_at": format_datetime_to_json(self.updated_at),
         }
