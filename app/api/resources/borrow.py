@@ -6,7 +6,7 @@ from ..models.borrow_info import BorrowModel
 from ..utils.format import res
 
 
-class Borrow(Resource):
+class BorrowList(Resource):
     @jwt_required()
     def get(self):
         borrow_info_list = BorrowModel.find_all()
@@ -47,8 +47,17 @@ class Borrow(Resource):
         except Exception as e:
             return res(success=False, message="Error: {}".format(e), code=500)
 
+
+class Borrow(Resource):
+    def get(self, borrow_id):
+        borrow_info = BorrowModel.find_by_borrow_id(borrow_id)
+        if borrow_info:
+            return res(data=borrow_info.dict())
+        else:
+            return res(message="Borrow not found", code=404)
+
     @jwt_required()
-    def delete(self):
+    def delete(self, borrow_id):
         parser = reqparse.RequestParser()
         parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
         data = parser.parse_args()
@@ -73,7 +82,7 @@ class Borrow(Resource):
             return res(success=False, message="Error: {}".format(e), code=500)
 
     @jwt_required()
-    def put(self):
+    def put(self, borrow_id):
         parser = reqparse.RequestParser()
         parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
         parser.add_argument('return_date', type=lambda x: datetime.strptime(x, '%Y-%m-%d'), required=True,
