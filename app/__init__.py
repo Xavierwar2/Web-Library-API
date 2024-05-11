@@ -15,6 +15,7 @@ from .api.models.user_login import UserLoginModel
 from .api.models.admin_login import AdminLoginModel
 from .api.models.user_collect import CollectModel
 from .api.models.user_feedback import FeedbackModel
+from .api.models.user_comment import CommentModel
 from .api.models.book_info import BookModel
 from .api.models.book_category import CategoryModel
 from .api.models.book_product import ProductModel

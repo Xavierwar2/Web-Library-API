@@ -7,7 +7,6 @@ class CommentModel(db.Model):
     """
     评论信息表
     """
-
     __tablename__ = "user_comment"
     comment_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     content = db.Column(db.Text, nullable=False)
