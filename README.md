@@ -63,3 +63,14 @@ python -m flask db upgrade
 python -m flask run
 ```
 
+
+
+### .gitignore配置
+
+终端输入
+
+```
+git rm -r --cached .
+git add .
+git commit -m 'update .gitignore'
+```
