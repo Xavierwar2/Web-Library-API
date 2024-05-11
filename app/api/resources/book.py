@@ -5,8 +5,7 @@ from ..schema.book_sha import book_args_valid
 from ..utils.format import res
 
 
-class BookListService(Resource):
-    @jwt_required()
+class BookList(Resource):
     def get(self):
         book_info_list = BookModel.find_all()
         result = []
@@ -32,26 +31,18 @@ class BookListService(Resource):
                                   current_number=number, number=number, category_id=category_id,
                                   product_id=product_id)
             book_info.add()
-            return res(message="Add Book successful!")
+            return res(message="Add Book successfully!")
         except Exception as e:
             return res(success=False, message="Error: {}".format(e), code=500)
 
 
-class BookService(Resource):
-    @jwt_required()
+class Book(Resource):
     def get(self, book_id):
-        book_info_list = BookModel.find_all()
-        if book_id:
-            book_info = BookModel.find_by_book_id(book_id)
-            if book_info:
-                for book_info in book_info_list:
-                    if book_info.book_id == book_id:
-                        return res(data=book_info.dict())
-            else:
-                return res(message="Book not found", code=404)
+        book_info = BookModel.find_by_book_id(book_id)
+        if book_info:
+            return res(data=book_info.dict())
         else:
-            result = [book_info.dict() for book_info in book_info_list]
-            return res(data=result)
+            return res(message="Book not found", code=404)
 
     @jwt_required()
     def delete(self, book_id):
@@ -62,12 +53,12 @@ class BookService(Resource):
             return res(success=False, message="Error: {}".format(e), code=500)
 
     @jwt_required()
-    def put(self):
+    def put(self, book_id):
         parser = reqparse.RequestParser()
         book_args_valid(parser)
         data = parser.parse_args()
         try:
-            book_info = BookModel.find_by_book_id(data['book_id'])
+            book_info = BookModel.find_by_book_id(book_id)
             if book_info:
                 book_name = data['book_name']
                 author = data['author']
@@ -77,12 +68,9 @@ class BookService(Resource):
                 number = data['number']
                 category_id = data['category_id']
                 product_id = data['product_id']
-                book_info = BookModel(book_id=data['book_id'], book_name=book_name, author=author, text=text,
-                                      image_url=image_url, current_number=current_number, number=number,
-                                      category_id=category_id, product_id=product_id)
-                book_info.update_book(data['book_id'], book_name, author, text, image_url, current_number, number,
+                book_info.update_book(book_id, book_name, author, text, image_url, current_number, number,
                                       category_id, product_id)
-                return res(message="Update Book successful!")
+                return res(message="Update Book successfully!")
             else:
                 return res(success=False, message="Book not found", code=404)
         except Exception as e:

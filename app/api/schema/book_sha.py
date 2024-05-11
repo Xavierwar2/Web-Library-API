@@ -6,5 +6,5 @@ def book_args_valid(parser):
     parser.add_argument('image_url', type=str, location='json')
     parser.add_argument('current_number', type=int, location='json')
     parser.add_argument('number', type=int, location='json')
-    parser.add_argument('category_id', type=str, location='json')
-    parser.add_argument('product_id', type=str, location='json')
+    parser.add_argument('category_id', type=int, location='json')
+    parser.add_argument('product_id', type=int, location='json')

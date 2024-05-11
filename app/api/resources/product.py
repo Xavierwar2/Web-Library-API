@@ -6,7 +6,7 @@ from ..models.book_product import ProductModel
 from ..utils.format import res
 
 
-class ProductService(Resource):
+class Product(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('product_id', type=int, required=True, help='Product ID is required')
     parser.add_argument('product_name', type=str, required=True, help='Product name is required')

@@ -70,7 +70,7 @@ class BookModel(db.Model):
     # 按 book_id 查找
     @classmethod
     def find_by_book_id(cls, book_id):
-        return db.session.execute(db.select(cls).filter_by(book_id=book_id)).first()
+        return db.session.query(cls).get(book_id)
 
     # 按 book_id 删除
     @classmethod

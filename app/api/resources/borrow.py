@@ -6,7 +6,7 @@ from ..models.borrow_info import BorrowModel
 from ..utils.format import res
 
 
-class BorrowService(Resource):
+class Borrow(Resource):
     @jwt_required()
     def get(self):
         borrow_info_list = BorrowModel.find_all()

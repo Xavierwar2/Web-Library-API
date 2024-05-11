@@ -4,7 +4,7 @@ from ..models.user_info import UserModel
 from ..utils.format import res
 
 
-class UserService(Resource):
+class User(Resource):
     @jwt_required()
     def get(self):
         user_info_list = UserModel.find_all()

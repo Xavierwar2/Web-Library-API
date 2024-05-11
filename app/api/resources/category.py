@@ -6,7 +6,7 @@ from ..models.book_category import CategoryModel
 from ..utils.format import res
 
 
-class CategoryService(Resource):
+class Category(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('category_id', type=int, required=True, help='Category ID is required')
     parser.add_argument('category_name', type=str, required=True, help='Category name is required')

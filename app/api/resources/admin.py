@@ -4,7 +4,7 @@ from ..models.admin_login import AdminLoginModel
 from ..utils.format import res
 
 
-class AdminService(Resource):
+class Admin(Resource):
     @jwt_required()
     def get(self):
         admin_login_list = AdminLoginModel.find_all()
