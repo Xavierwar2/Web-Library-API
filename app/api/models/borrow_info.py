@@ -41,6 +41,11 @@ class BorrowModel(db.Model):
     @classmethod
     def find_all(cls):
         return db.session.query(cls).all()
+    
+    # 根据borrow_id查找
+    @classmethod
+    def find_by_borrow_id(cls, borrow_id):
+        return db.session.query(cls).get(borrow_id)
 
     # 添加借阅项
     @classmethod
