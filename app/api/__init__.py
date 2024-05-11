@@ -7,6 +7,7 @@ from .resources.user_register import UserRegister
 from .resources.user_login import UserLogin
 from .resources.user_logout import UserLogout
 from .resources.user import UserService
+from .resources.book import BookListService
 from .resources.book import BookService
 
 from .resources.admin import AdminService
@@ -25,4 +26,5 @@ api.add_resource(UserService, '/userInfo')
 api.add_resource(AdminService, '/adminInfo')
 api.add_resource(BorrowService, '/borrowInfo')
 api.add_resource(Captcha, '/captcha')
-api.add_resource(BookService, '/bookInfo')
+api.add_resource(BookListService, '/bookListInfo')
+api.add_resource(BookService, '/bookInfo/<int:book_id>')

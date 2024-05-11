@@ -5,7 +5,7 @@ from datetime import timedelta
 # 需要根据自己数据库的账号密码修改相关值
 TYPE = "mysql+pymysql"
 USERNAME = "root"
-PASSWORD = "123456"
+PASSWORD = "password"
 HOST = "127.0.0.1"
 PORT = "3306"
 DATABASE = "web-library"

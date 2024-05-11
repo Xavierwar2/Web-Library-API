@@ -39,10 +39,12 @@ class BookModel(db.Model):
     def dict(self):
         return {
             "book_id": self.book_id,
-            "book_name": self.bookname,
+            "book_name": self.book_name,
             "author": self.author,
             "text": self.text,
             "image_url": self.image_url,
+            "borrow_count": self.borrow_count,
+            "current_number": self.current_number,
             "number": self.number,
             "category_id": self.category_id,
             "product_id": self.product_id,
