@@ -50,11 +50,11 @@ class BorrowService(Resource):
     @jwt_required()
     def delete(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('id', type=int, required=True, help='Borrow ID is required')
+        parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
         data = parser.parse_args()
 
         try:
-            borrow_info = BorrowModel.find_by_id(data['id'])
+            borrow_info = BorrowModel.find_by_id(data['borrow_id'])
             if not borrow_info:
                 return res(success=False, message="Borrow information not found", code=404)
 
@@ -75,13 +75,13 @@ class BorrowService(Resource):
     @jwt_required()
     def put(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('id', type=int, required=True, help='Borrow ID is required')
+        parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
         parser.add_argument('return_date', type=lambda x: datetime.strptime(x, '%Y-%m-%d'), required=True,
                             help='Return date is required')
         data = parser.parse_args()
 
         try:
-            borrow_info = BorrowModel.find_by_id(data['id'])
+            borrow_info = BorrowModel.find_by_id(data['borrow_id'])
             if not borrow_info:
                 return res(success=False, message="Borrow information not found", code=404)
 
@@ -103,13 +103,13 @@ class BorrowService(Resource):
     @jwt_required()
     def patch(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('id', type=int, required=True, help='Borrow ID is required')
+        parser.add_argument('borrow_id', type=int, required=True, help='Borrow ID is required')
         parser.add_argument('return_date', type=lambda x: datetime.strptime(x, '%Y-%m-%d'), required=True,
                             help='Return date is required')
         data = parser.parse_args()
 
         try:
-            borrow_info = BorrowModel.find_by_id(data['id'])
+            borrow_info = BorrowModel.find_by_id(data['borrow_id'])
             if not borrow_info:
                 return res(success=False, message="Borrow information not found", code=404)
 
