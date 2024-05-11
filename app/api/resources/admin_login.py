@@ -15,11 +15,10 @@ class AdminLogin(Resource):
         reg_args_valid(parser)
         data = parser.parse_args()
         username = data['username']
-        admin_tuple = AdminLoginModel.find_by_username(username)
-        if admin_tuple:
+        admin_login = AdminLoginModel.find_by_username(username)
+        if admin_login:
             try:
-                (admin,) = admin_tuple
-                password, salt = admin.password, admin.salt
+                password, salt = admin_login.password, admin_login.salt
                 valid = check_password_hash(password, '{}{}'.format(salt, data['password']))
                 if valid:
                     # 生成 token
@@ -36,6 +35,7 @@ class AdminLogin(Resource):
     def get(self):
         jwt_data = get_jwt()
         role = jwt_data['role']
+        is_super = jwt_data['is_super']
 
         # 管理员可以执行该操作
         if role == 'admin':
@@ -43,8 +43,16 @@ class AdminLogin(Resource):
             # 先从 refresh_token 中取出用户信息
             current_username = get_jwt_identity()
             # 再生成新的 token
-            access_token = create_access_token(identity=current_username, additional_claims={'role': 'admin'})
-            return res(data={'accessToken': 'Bearer ' + access_token})
+            if is_super == 'true':
+                access_token = create_access_token(identity=current_username,
+                                                   additional_claims={'role': 'admin', 'is_super': 'true'})
+                return res(data={'accessToken': 'Bearer ' + access_token})
+            elif is_super == 'false':
+                access_token = create_access_token(identity=current_username,
+                                                   additional_claims={'role': 'admin', 'is_super': 'false'})
+                return res(data={'accessToken': 'Bearer ' + access_token})
+            else:
+                return res(success=False, message='Access denied.', code=403)
 
         else:
             return res(success=False, message='Access denied.', code=403)
@@ -52,8 +60,14 @@ class AdminLogin(Resource):
 
 # 生成token
 def generate_token(id):
-    access_token = create_access_token(identity=id, additional_claims={'role': 'admin'})
-    refresh_token = create_refresh_token(identity=id, additional_claims={'role': 'admin'})
+    admin_login = AdminLoginModel.find_by_username(id)
+
+    if admin_login.is_super_admin:
+        access_token = create_access_token(identity=id, additional_claims={'role': 'admin', 'is_super': 'true'})
+        refresh_token = create_refresh_token(identity=id, additional_claims={'role': 'admin', 'is_super': 'true'})
+    else:
+        access_token = create_access_token(identity=id, additional_claims={'role': 'admin', 'is_super': 'false'})
+        refresh_token = create_refresh_token(identity=id, additional_claims={'role': 'admin', 'is_super': 'false'})
     return {
         'accessToken': 'Bearer ' + access_token,
         'refreshToken': 'Bearer ' + refresh_token,

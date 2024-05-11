@@ -31,6 +31,11 @@ class UserLoginModel(db.Model):
         db.session.add(self)
         db.session.commit()
 
+    # 按 user_id 查找
+    @classmethod
+    def find_by_user_id(cls, user_id):
+        return db.session.query(cls).get(user_id)
+
     # 按 username 查找
     @classmethod
     def find_by_username(cls, username):
@@ -40,4 +45,15 @@ class UserLoginModel(db.Model):
     @classmethod
     def delete_by_user_id(cls, user_id):
         db.session.query(cls).filter_by(user_id=user_id).delete()
+        db.session.commit()
+
+    # 按 user_id 修改
+    @classmethod
+    def update_user(cls, user_id, username, password, salt):
+        update_data = {
+            "username": username,
+            "password": password,
+            "salt": salt,
+        }
+        db.session.query(cls).filter_by(user_id=user_id).update(update_data)
         db.session.commit()

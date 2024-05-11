@@ -97,5 +97,5 @@ class Book(Resource):
             except Exception as e:
                 return res(success=False, message="Error: {}".format(e), code=500)
 
-            else:
-                return res(success=False, message='Access denied.', code=403)
+        else:
+            return res(success=False, message='Access denied.', code=403)

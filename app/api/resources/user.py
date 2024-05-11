@@ -1,5 +1,9 @@
+import uuid
+
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import jwt_required, get_jwt
+from werkzeug.security import generate_password_hash
+
 from ..models.user_info import UserModel
 from ..schema.user_sha import user_args_valid
 from ..utils.format import res
@@ -36,15 +40,25 @@ class User(Resource):
         data = parser.parse_args()
         try:
             user_info = UserModel.find_by_user_id(user_id)
-            if user_info:
+            user_login = UserLoginModel.find_by_user_id(user_id)
+            if user_info and user_login:
                 username = data['username']
-                email = data['email']
-                sex = data['sex']
-                age = data['age']
-                status = data['status']
-                image_url = data['image_url']
-                user_info.update_user(user_id, username, email, sex, age, status, image_url)
-                return res(message="Update User successfully!")
+                if username != user_login.username and UserLoginModel.find_by_username(username):
+                    return res(success=False, message="Repeated username!", code=400)
+                else:
+                    salt = user_login.salt
+                    password = user_login.password
+                    email = data['email']
+                    sex = data['sex']
+                    age = data['age']
+                    status = data['status']
+                    image_url = data['image_url']
+                    user_info.update_user(user_id, username, email, sex, age, status, image_url)
+                    if data['password']:
+                        salt = uuid.uuid4().hex
+                        password = generate_password_hash('{}{}'.format(salt, data['password']))
+                    user_login.update_user(user_id, username, password, salt)
+                    return res(message="Update User successfully!")
             else:
                 return res(success=False, message="User not found", code=404)
         except Exception as e:

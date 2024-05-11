@@ -21,6 +21,7 @@ class AdminLoginModel(db.Model):
         return {
             "admin_id": self.admin_id,
             "username": self.username,
+            "is_super_admin": self.is_super_admin,
             "created_at": format_datetime_to_json(self.created_at),
             "updated_at": format_datetime_to_json(self.updated_at),
         }
@@ -35,7 +36,30 @@ class AdminLoginModel(db.Model):
     def find_all(cls):
         return db.session.query(cls).all()
 
+    # 按 admin_id 查找
+    @classmethod
+    def find_by_admin_id(cls, admin_id):
+        return db.session.query(cls).get(admin_id)
+
     # 按 username 查找
     @classmethod
     def find_by_username(cls, username):
-        return db.session.execute(db.select(cls).filter_by(username=username)).first()
+        return db.session.query(cls).filter_by(username=username).first()
+
+    # 按 admin_id 删除
+    @classmethod
+    def delete_by_admin_id(cls, admin_id):
+        db.session.query(cls).filter_by(admin_id=admin_id).delete()
+        db.session.commit()
+
+    # 按 admin_id 修改
+    @classmethod
+    def update_admin(cls, admin_id, username, password, salt, is_super_admin):
+        update_data = {
+            "username": username,
+            "password": password,
+            "salt": salt,
+            "is_super_admin": is_super_admin,
+        }
+        db.session.query(cls).filter_by(admin_id=admin_id).update(update_data)
+        db.session.commit()

@@ -16,7 +16,7 @@ from .resources.book import Book
 from .resources.product import Product
 from .resources.category import Category
 
-from .resources.admin import Admin
+from .resources.admin import Admin, AdminList
 from .resources.borrow import BorrowList
 from .resources.borrow import Borrow
 from .resources.captcha import Captcha
@@ -32,7 +32,8 @@ api.add_resource(Logout, '/logout')
 api.add_resource(User, '/userInfo/<int:user_id>')
 api.add_resource(UserList, '/userListInfo')
 api.add_resource(UserByUsername, '/userInfo/<string:username>')
-api.add_resource(Admin, '/adminInfo')
+api.add_resource(AdminList, '/adminInfo')
+api.add_resource(Admin, '/adminInfo/<int:admin_id>')
 api.add_resource(BorrowList, '/BorrowInfo')
 api.add_resource(Borrow, '/borrowInfo/<int:borrow_id>')
 api.add_resource(Captcha, '/captcha')
