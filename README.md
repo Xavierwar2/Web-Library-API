@@ -9,8 +9,8 @@
 ### 工具版本
 
 - Python: 3.11
-- Flask: 2.3.2
-
+- Flask: 2.3.2 
+ <br/>其余可参考```requirements.txt```
 
 
 ### 项目目录结构
@@ -21,10 +21,10 @@
 ├── app/
 │   └── api/ # api 接口模块
 │       └── __init__.py # 注册以及生成蓝图
-│       └── common/ # 公共方法
 │       └── models/ # 模型
 │       └── resources/ # 接口
 │       └── schema/ # 校验
+│       └── utils/ # 工具
 │   └── __init__.py # 整个应用的初始化
 │   └── config.py # 配置项
 │   └── manage.py # 数据库迁移工具管理
