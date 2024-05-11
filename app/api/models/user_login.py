@@ -35,3 +35,9 @@ class UserLoginModel(db.Model):
     @classmethod
     def find_by_username(cls, username):
         return db.session.execute(db.select(cls).filter_by(username=username)).first()
+
+    # 按 user_id 删除
+    @classmethod
+    def delete_by_user_id(cls, user_id):
+        db.session.query(cls).filter_by(user_id=user_id).delete()
+        db.session.commit()
