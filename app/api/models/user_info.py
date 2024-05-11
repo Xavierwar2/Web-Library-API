@@ -11,7 +11,7 @@ class UserModel(db.Model):
     __tablename__ = "user_info"
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
-    email = db.Column(db.String(255), unique=True)
+    email = db.Column(db.String(255), nullable=False, unique=True)
     sex = db.Column(db.Integer, default=2)
     age = db.Column(db.Integer, default=0)
     status = db.Column(db.Integer, nullable=False)
@@ -19,8 +19,7 @@ class UserModel(db.Model):
                           default="https://tse2-mm.cn.bing.net/th/id/OIP-C.jHUH4s7TQ4…ozuJgHaHa?w=188&h=188&c=7&r=0&o"
                                   "=5&dpr=1.3&pid=1.7", nullable=False)
     created_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, comment='创建时间')
-    updated_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now,
-                           comment='更新时间')
+    updated_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now, comment='更新时间')
 
     # 字典
     def dict(self):

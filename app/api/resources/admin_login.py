@@ -1,5 +1,5 @@
 from flask_restful import Resource, reqparse
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
 from werkzeug.security import check_password_hash
 
 from ..schema.register_sha import reg_args_valid
@@ -34,18 +34,26 @@ class AdminLogin(Resource):
 
     @jwt_required(refresh=True)
     def get(self):
-        # access_token 过期后 需要用 refresh_token 来换取新的 token
-        # 先从 refresh_token 中取出用户信息
-        current_username = get_jwt_identity()
-        # 再生成新的 token
-        access_token = create_access_token(identity=current_username)
-        return res(data={'accessToken': 'Bearer ' + access_token})
+        jwt_data = get_jwt()
+        role = jwt_data['role']
+
+        # 管理员可以执行该操作
+        if role == 'admin':
+            # access_token 过期后 需要用 refresh_token 来换取新的 token
+            # 先从 refresh_token 中取出用户信息
+            current_username = get_jwt_identity()
+            # 再生成新的 token
+            access_token = create_access_token(identity=current_username, additional_claims={'role': 'admin'})
+            return res(data={'accessToken': 'Bearer ' + access_token})
+
+        else:
+            return res(success=False, message='Access denied.', code=403)
 
 
 # 生成token
 def generate_token(id):
-    access_token = create_access_token(identity=id)
-    refresh_token = create_refresh_token(identity=id)
+    access_token = create_access_token(identity=id, additional_claims={'role': 'admin'})
+    refresh_token = create_refresh_token(identity=id, additional_claims={'role': 'admin'})
     return {
         'accessToken': 'Bearer ' + access_token,
         'refreshToken': 'Bearer ' + refresh_token,

@@ -1,5 +1,5 @@
 from flask_restful import Resource, reqparse
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt
 from ..models.user_comment import CommentModel
 from ..schema.comment_sha import comment_args_valid
 from ..utils.format import res
@@ -8,12 +8,20 @@ from ..utils.format import res
 class CommentList(Resource):
     @jwt_required()
     def get(self):
-        user_comment_list = CommentModel.find_all()
-        result = []
-        for user_comment in user_comment_list:
-            result.append(user_comment.dict())
+        jwt_data = get_jwt()
+        role = jwt_data['role']
 
-        return res(data=result)
+        # 管理员可以执行该操作
+        if role == 'admin':
+            user_comment_list = CommentModel.find_all()
+            result = []
+            for user_comment in user_comment_list:
+                result.append(user_comment.dict())
+
+            return res(data=result)
+
+        else:
+            return res(success=False, message='Access denied.', code=403)
 
     @jwt_required()
     def post(self):
@@ -31,39 +39,87 @@ class CommentList(Resource):
         except Exception as e:
             return res(success=False, message="Error: {}".format(e), code=500)
 
+    @jwt_required()
+    def delete(self):
+        jwt_data = get_jwt()
+        role = jwt_data['role']
+
+        # 管理员可以执行该操作
+        if role == 'admin':
+            try:
+                parser = reqparse.RequestParser()
+                comment_args_valid(parser)
+                data = parser.parse_args()
+                delete_list = data['delete_list']
+                # 根据提供的 ID 数组执行删除操作
+                for comment in delete_list:
+                    comment_id = comment.get('comment_id')
+                    CommentModel.delete_by_comment_id(comment_id)
+                return res(message='Comment deleted successfully!')
+
+            except Exception as e:
+                return res(success=False, message="Error: {}".format(e), code=500)
+
+        else:
+            return res(success=False, message='Access denied.', code=403)
+
 
 class Comment(Resource):
     @jwt_required()
     def get(self, comment_id):
-        user_comment = CommentModel.find_by_comment_id(comment_id)
-        if user_comment:
-            return res(data=user_comment.dict())
+        jwt_data = get_jwt()
+        role = jwt_data['role']
+
+        # 管理员可以执行该操作
+        if role == 'admin':
+            user_comment = CommentModel.find_by_comment_id(comment_id)
+            if user_comment:
+                return res(data=user_comment.dict())
+            else:
+                return res(message="Comment not found", code=404)
+
         else:
-            return res(message="Comment not found", code=404)
+            return res(success=False, message='Access denied.', code=403)
 
     @jwt_required()
     def delete(self, comment_id):
-        try:
-            CommentModel.delete_by_comment_id(comment_id)
-            return res(message='Comment deleted successfully!')
-        except Exception as e:
-            return res(success=False, message="Error: {}".format(e), code=500)
+        jwt_data = get_jwt()
+        role = jwt_data['role']
+
+        # 管理员可以执行该操作
+        if role == 'admin':
+            try:
+                CommentModel.delete_by_comment_id(comment_id)
+                return res(message='Comment deleted successfully!')
+            except Exception as e:
+                return res(success=False, message="Error: {}".format(e), code=500)
+
+        else:
+            return res(success=False, message='Access denied.', code=403)
 
     @jwt_required()
     def put(self, comment_id):
-        parser = reqparse.RequestParser()
-        comment_args_valid(parser)
-        data = parser.parse_args()
-        try:
-            user_comment = CommentModel.find_by_comment_id(comment_id)
-            if user_comment:
-                content = data['content']
-                user_comment.update_comment(comment_id, content)
-                return res(message="Update comment successfully!")
-            else:
-                return res(success=False, message="Comment not found", code=404)
-        except Exception as e:
-            return res(success=False, message="Error: {}".format(e), code=500)
+        jwt_data = get_jwt()
+        role = jwt_data['role']
+
+        # 管理员可以执行该操作
+        if role == 'admin':
+            parser = reqparse.RequestParser()
+            comment_args_valid(parser)
+            data = parser.parse_args()
+            try:
+                user_comment = CommentModel.find_by_comment_id(comment_id)
+                if user_comment:
+                    content = data['content']
+                    user_comment.update_comment(comment_id, content)
+                    return res(message="Update comment successfully!")
+                else:
+                    return res(success=False, message="Comment not found", code=404)
+            except Exception as e:
+                return res(success=False, message="Error: {}".format(e), code=500)
+
+        else:
+            return res(success=False, message='Access denied.', code=403)
 
 
 class CommentByUser(Resource):

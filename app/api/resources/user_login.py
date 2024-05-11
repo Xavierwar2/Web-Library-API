@@ -38,14 +38,14 @@ class UserLogin(Resource):
         # 先从 refresh_token 中取出用户信息
         current_username = get_jwt_identity()
         # 再生成新的 token
-        access_token = create_access_token(identity=current_username)
+        access_token = create_access_token(identity=current_username, additional_claims={'role': 'user'})
         return res(data={'accessToken': 'Bearer ' + access_token})
 
 
 # 生成token
 def generate_token(id):
-    access_token = create_access_token(identity=id)
-    refresh_token = create_refresh_token(identity=id)
+    access_token = create_access_token(identity=id, additional_claims={'role': 'user'})
+    refresh_token = create_refresh_token(identity=id, additional_claims={'role': 'user'})
     return {
         'accessToken': 'Bearer ' + access_token,
         'refreshToken': 'Bearer ' + refresh_token,
