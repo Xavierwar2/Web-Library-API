@@ -3,6 +3,7 @@ from flask_restful import Api
 
 from .resources.admin_login import AdminLogin
 from .resources.comment import Comment, CommentList, CommentByUser, CommentByBook
+from .resources.collect import Collect
 from .resources.email_login import EmailLogin
 from .resources.user_register import UserRegister
 from .resources.user_login import UserLogin
@@ -28,7 +29,6 @@ api.add_resource(UserLogin, '/userLogin', '/userRefreshToken')
 api.add_resource(EmailLogin, '/emailLogin', '/userRefreshToken')
 api.add_resource(AdminLogin, '/adminLogin', '/adminRefreshToken')
 api.add_resource(Logout, '/logout')
-api.add_resource(User, '/userInfo')
 api.add_resource(User, '/userInfo/<int:user_id>')
 api.add_resource(UserList, '/userListInfo')
 api.add_resource(UserByUsername, '/userInfo/<string:username>')
@@ -44,3 +44,4 @@ api.add_resource(CommentList, '/comment')
 api.add_resource(Comment, '/comment/<int:comment_id>')
 api.add_resource(CommentByUser, '/comment/user/<int:user_id>')
 api.add_resource(CommentByBook, '/comment/book/<int:book_id>')
+api.add_resource(Collect, '/collect/user/<int:user_id>', '/collect/collect/<int:collection_id>', '/collect')

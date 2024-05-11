@@ -1,5 +1,5 @@
 def book_args_valid(parser):
-    parser.add_argument('book_id', type=int, help='book id')
+    parser.add_argument('book_id', type=int, location='book_id')
     parser.add_argument('book_name', type=str, location='json')
     parser.add_argument('author', type=str, location='json')
     parser.add_argument('text', type=str, location='json')
