@@ -20,8 +20,6 @@ class UserLoginModel(db.Model):
     #     return {
     #         "user_id": self.user_id,
     #         "username": self.username,
-    #         "password": self.password,
-    #         "salt": self.salt,
     #         "created_at": format_datetime_to_json(self.created_at),
     #         "updated_at": format_datetime_to_json(self.updated_at),
     #     }

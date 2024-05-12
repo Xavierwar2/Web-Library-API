@@ -6,7 +6,6 @@ from ..utils.format import res
 
 
 class CategoryList(Resource):
-    @jwt_required()
     def get(self):
         book_category_list = CategoryModel.find_all()
         result = []
@@ -40,7 +39,6 @@ class CategoryList(Resource):
 
 
 class Category(Resource):
-    @jwt_required()
     def get(self, category_id):
         book_category = BookModel.find_by_category_id(category_id)
         if book_category:

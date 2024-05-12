@@ -4,6 +4,7 @@ from flask_restful import Api
 from .resources.admin_login import AdminLogin
 from .resources.comment import Comment, CommentList, CommentByUser, CommentByBook
 from .resources.collect import Collect, CollectList
+from .resources.current_user import CurrentUser
 from .resources.email_login import EmailLogin
 from .resources.user_register import UserRegister
 from .resources.user_login import UserLogin
@@ -26,6 +27,7 @@ from .resources.captcha import Captcha
 api_blueprint = Blueprint('api', __name__, url_prefix="/")
 api = Api(api_blueprint)
 
+api.add_resource(CurrentUser, '/currentUser')
 api.add_resource(UserRegister, '/userRegister')
 api.add_resource(UserLogin, '/userLogin', '/userRefreshToken')
 api.add_resource(EmailLogin, '/emailLogin', '/userRefreshToken')
