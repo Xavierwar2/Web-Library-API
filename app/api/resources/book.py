@@ -81,16 +81,15 @@ class Book(Resource):
             try:
                 book_info = BookModel.find_by_book_id(book_id)
                 if book_info:
-                    book_name = data['book_name']
-                    author = data['author']
-                    text = data['text']
-                    image_url = data['image_url']
-                    current_number = data['current_number']
-                    number = data['number']
-                    category_id = data['category_id']
-                    product_id = data['product_id']
-                    book_info.update_book(book_id, book_name, author, text, image_url, current_number, number,
-                                          category_id, product_id)
+                    book_info.book_name = data['book_name']
+                    book_info.author = data['author']
+                    book_info.text = data['text']
+                    book_info.image_url = data['image_url']
+                    book_info.current_number = data['current_number']
+                    book_info.number = data['number']
+                    book_info.category_id = data['category_id']
+                    book_info.product_id = data['product_id']
+                    BookModel.update_book_info(book_info)
                     return res(message="Update Book successfully!")
                 else:
                     return res(success=False, message="Book not found", code=404)

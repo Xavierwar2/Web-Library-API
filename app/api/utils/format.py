@@ -10,3 +10,8 @@ def res(data=None, message='Ok', success=True, code=200):
 # datetime 转换格式
 def format_datetime_to_json(datetime, format='%Y-%m-%d %H:%M:%S'):
     return datetime.strftime(format)
+
+
+# date 转换格式
+def format_date_to_json(datetime, format='%Y-%m-%d'):
+    return datetime.strftime(format)

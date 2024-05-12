@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash
 
 from ..models.user_info import UserModel
 from ..schema.user_sha import user_args_valid
+from ..utils import redis_captcha
 from ..utils.format import res
 from ..models.user_login import UserLoginModel
 
@@ -46,18 +47,26 @@ class User(Resource):
                 if username != user_login.username and UserLoginModel.find_by_username(username):
                     return res(success=False, message="Repeated username!", code=400)
                 else:
-                    salt = user_login.salt
-                    password = user_login.password
-                    email = data['email']
+                    if data['password']:
+                        salt = uuid.uuid4().hex
+                        password = generate_password_hash('{}{}'.format(salt, data['password']))
+                        user_login.update_user(user_id, username, password, salt)
+                        return res(message="Update password successfully!")
+
+                    email = user_info.email
+                    if data['email']:
+                        email = data['email']
+                        captcha = redis_captcha.redis_get(email)
+                        if captcha is None or captcha != data['captcha']:
+                            return res(success=False, message='Invalid captcha!', code=400)
+                        else:
+                            redis_captcha.redis_delete(email)
+
                     sex = data['sex']
                     age = data['age']
                     status = data['status']
                     image_url = data['image_url']
                     user_info.update_user(user_id, username, email, sex, age, status, image_url)
-                    if data['password']:
-                        salt = uuid.uuid4().hex
-                        password = generate_password_hash('{}{}'.format(salt, data['password']))
-                    user_login.update_user(user_id, username, password, salt)
                     return res(message="Update User successfully!")
             else:
                 return res(success=False, message="User not found", code=404)

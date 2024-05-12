@@ -80,17 +80,16 @@ class BookModel(db.Model):
 
     # 按 book_id 修改
     @classmethod
-    def update_book(cls, book_id, book_name, author, text, image_url, current_number, number, category_id,
-                    product_id):
+    def update_book_info(cls, book_info):
         update_data = {
-            'book_name': book_name,
-            'author': author,
-            'text': text,
-            'image_url': image_url,
-            'current_number': current_number,
-            'number': number,
-            'category_id': category_id,
-            'product_id': product_id
+            'book_name': book_info.book_name,
+            'author': book_info.author,
+            'text': book_info.text,
+            'image_url': book_info.image_url,
+            'current_number': book_info.current_number,
+            'number': book_info.number,
+            'category_id': book_info.category_id,
+            'product_id': book_info.product_id
         }
-        db.session.query(cls).filter_by(book_id=book_id).update(update_data)
+        db.session.query(cls).filter_by(book_id=book_info.book_id).update(update_data)
         db.session.commit()

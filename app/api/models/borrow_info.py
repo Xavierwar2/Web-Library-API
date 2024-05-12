@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from ..models import db
-from ..utils.format import format_datetime_to_json
+from ..utils.format import format_datetime_to_json, format_date_to_json
 
 
 class BorrowModel(db.Model):
@@ -15,11 +15,11 @@ class BorrowModel(db.Model):
     """
     __tablename__ = "borrow_info"
     borrow_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    borrow_time = db.Column(db.Date, default=datetime.now(), nullable=False)
-    return_time = db.Column(db.Date)
+    borrow_time = db.Column(db.Date, default=datetime.now, nullable=False)
+    return_time = db.Column(db.Date, default=datetime.now() + timedelta(days=30), nullable=False)
     book_status = db.Column(db.Integer, default=0)
-    username = db.Column(db.String(20), nullable=False)
-    book_name = db.Column(db.String(50), nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
+    book_id = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, comment='创建时间')
     updated_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now,
                            comment='更新时间')
@@ -28,60 +28,42 @@ class BorrowModel(db.Model):
     def dict(self):
         return {
             "borrow_id": self.borrow_id,
-            "borrow_time": self.borrow_time,
-            "return_time": self.return_time,
+            "borrow_time": format_date_to_json(self.borrow_time),
+            "return_time": format_date_to_json(self.return_time),
             "book_status": self.book_status,
-            "username": self.username,
-            "book_name": self.book_name,
+            "user_id": self.user_id,
+            "book_id": self.book_id,
             "created_at": format_datetime_to_json(self.created_at),
             "updated_at": format_datetime_to_json(self.updated_at),
         }
+
+    # 新增一条记录
+    def add(self):
+        db.session.add(self)
+        db.session.commit()
 
     # 返回所有记录
     @classmethod
     def find_all(cls):
         return db.session.query(cls).all()
-    
+
     # 根据borrow_id查找
     @classmethod
     def find_by_borrow_id(cls, borrow_id):
         return db.session.query(cls).get(borrow_id)
 
-    # 添加借阅项
-    @classmethod
-    def add_borrow_info(cls, user_id, book_id):
-        borrow_info = cls(
-            user_id=user_id,
-            book_id=book_id,
-            borrow_time=datetime.now(),
-            return_time=None,
-            book_status=0
-        )
-        db.session.add(borrow_info)
-        db.session.commit()
-
     # 删除借阅项
     @classmethod
-    def delete_borrow_info(cls, borrow_id):
-        borrow_info = cls.query.get(borrow_id)
-        if borrow_info:
-            db.session.delete(borrow_info)
-            db.session.commit()
+    def delete_by_borrow_id(cls, borrow_id):
+        db.session.query(cls).filter_by(borrow_id=borrow_id).delete()
+        db.session.commit()
 
     # 更新归还时间和书籍状态
     @classmethod
-    def update_return_time(cls, borrow_id, return_date):
-        borrow_info = cls.query.get(borrow_id)
-        if borrow_info:
-            borrow_info.return_time = return_date
-            borrow_info.book_status = 1  # 已归还
-            db.session.commit()
-
-    # 仅更新归还时间
-    @classmethod
-    def update_return_date(cls, borrow_id, return_date):
-        borrow_info = cls.query.get(borrow_id)
-        if borrow_info:
-            borrow_info.return_time = return_date
-            db.session.commit()
-
+    def update_borrow_info(cls, borrow_info):
+        update_data = {
+            "return_time": borrow_info.return_time,
+            "book_status": borrow_info.book_status,
+        }
+        db.session.query(cls).filter_by(borrow_id=borrow_info.borrow_id).update(update_data)
+        db.session.commit()
