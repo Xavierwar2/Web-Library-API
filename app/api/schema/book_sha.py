@@ -8,3 +8,4 @@ def book_args_valid(parser):
     parser.add_argument('number', type=int, location='json')
     parser.add_argument('category_id', type=int, location='json')
     parser.add_argument('product_id', type=int, location='json')
+    parser.add_argument('delete_list', type=list, location='json')

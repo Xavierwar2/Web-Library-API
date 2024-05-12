@@ -1,7 +1,6 @@
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import jwt_required, get_jwt
 from ..models.book_info import BookModel
-from datetime import datetime
 from ..models.book_category import CategoryModel
 from ..utils.format import res
 
@@ -60,6 +59,10 @@ class Category(Resource):
             if category_info:
                 try:
                     CategoryModel.delete_category_info(category_id)
+                    book_category = BookModel.find_by_category_id(category_id)
+                    for book in book_category:
+                        book_id = book.get('book_id')
+                        book.update_book_category_id(book_id, 0)
                     return res(message="Category deleted successfully", status=200)
                 except Exception as e:
                     return res(message=str(e), status=500)

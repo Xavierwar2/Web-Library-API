@@ -43,6 +43,30 @@ class BookList(Resource):
         else:
             return res(success=False, message='Access denied.', code=403)
 
+    @jwt_required()
+    def delete(self):
+        jwt_data = get_jwt()
+        role = jwt_data['role']
+
+        # 管理员可以执行该操作
+        if role == 'admin':
+            try:
+                parser = reqparse.RequestParser()
+                book_args_valid(parser)
+                data = parser.parse_args()
+                delete_list = data['delete_list']
+                # 根据提供的 ID 数组执行删除操作
+                for user in delete_list:
+                    book_id = user.get('book_id')
+                    BookModel.delete_by_book_id(book_id)
+                return res(message='Books deleted successfully!')
+
+            except Exception as e:
+                return res(success=False, message="Error: {}".format(e), code=500)
+
+        else:
+            return res(success=False, message='Access denied.', code=403)
+
 
 class Book(Resource):
     def get(self, book_id):

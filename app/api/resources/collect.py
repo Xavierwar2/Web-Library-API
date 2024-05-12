@@ -1,10 +1,12 @@
+from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse
 from ..models.user_collect import CollectModel
-from ..schema.collect_sha import user_collect_args_valid
+from ..schema.collect_sha import collect_args_valid
 from ..utils.format import res
 
 
 class Collect(Resource):
+    @jwt_required()
     def get(self, user_id):
         collect_info_list = CollectModel.find_by_user_id(user_id)
         result = []
@@ -13,9 +15,10 @@ class Collect(Resource):
 
         return res(data=result)
 
+    @jwt_required()
     def post(self):
         parser = reqparse.RequestParser()
-        user_collect_args_valid(parser)
+        collect_args_valid(parser)
         data = parser.parse_args()
         try:
             user_id = data['user_id']
@@ -30,9 +33,27 @@ class Collect(Resource):
         except Exception as e:
             return res(success=False, message="Error: {}".format(e), code=500)
 
+    @jwt_required()
     def delete(self, collection_id):
         try:
             CollectModel.delete_by_collect_id(collection_id)
             return res(message='Book deleted successfully!')
+        except Exception as e:
+            return res(success=False, message="Error: {}".format(e), code=500)
+
+
+class CollectList(Resource):
+    @jwt_required()
+    def delete(self):
+        try:
+            parser = reqparse.RequestParser()
+            collect_args_valid(parser)
+            data = parser.parse_args()
+            delete_list = data['delete_list']
+            # 根据提供的 ID 数组执行删除操作
+            for collect in delete_list:
+                collection_id = collect.get('collection_id')
+                CollectModel.delete_by_collection_id(collection_id)
+            return res(message='Collects deleted successfully!')
         except Exception as e:
             return res(success=False, message="Error: {}".format(e), code=500)

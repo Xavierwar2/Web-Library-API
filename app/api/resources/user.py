@@ -88,6 +88,31 @@ class UserList(Resource):
         else:
             return res(success=False, message="Role must be admin", code=403)
 
+    @jwt_required()
+    def delete(self):
+        jwt_data = get_jwt()
+        role = jwt_data['role']
+
+        # 管理员可以执行该操作
+        if role == 'admin':
+            try:
+                parser = reqparse.RequestParser()
+                user_args_valid(parser)
+                data = parser.parse_args()
+                delete_list = data['delete_list']
+                # 根据提供的 ID 数组执行删除操作
+                for user in delete_list:
+                    user_id = user.get('user_id')
+                    UserModel.delete_by_user_id(user_id)
+                    UserLoginModel.delete_by_user_id(user_id)
+                return res(message='Users deleted successfully!')
+
+            except Exception as e:
+                return res(success=False, message="Error: {}".format(e), code=500)
+
+        else:
+            return res(success=False, message='Access denied.', code=403)
+
 
 class UserByUsername(Resource):
     @jwt_required()

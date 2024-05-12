@@ -8,3 +8,4 @@ def user_args_valid(parser):
     parser.add_argument('age', type=int, location='json')
     parser.add_argument('status', type=int, location='json')
     parser.add_argument('image_url', type=str, location='json')
+    parser.add_argument('delete_list', type=list, location='json')
