@@ -29,7 +29,7 @@ class BookModel(db.Model):
     borrow_count = db.Column(db.Integer, default=0)
     current_number = db.Column(db.Integer, default=0)
     number = db.Column(db.Integer, default=0)
-    category_id = db.Column(db.Integer, nullable=False)
+    category_id = db.Column(db.Integer, nullable=False, default=0)
     product_id = db.Column(db.Integer, nullable=False)
     created_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, comment='创建时间')
     updated_at = db.Column(db.DateTime(), nullable=False, default=datetime.now, onupdate=datetime.now,
@@ -72,6 +72,11 @@ class BookModel(db.Model):
     def find_by_book_id(cls, book_id):
         return db.session.query(cls).get(book_id)
 
+    # 按照 category 查找
+    @classmethod
+    def find_by_category_id(cls, category_id):
+        return db.session.query(cls).filter_by(category_id=category_id).all()
+
     # 按 book_id 删除
     @classmethod
     def delete_by_book_id(cls, book_id):
@@ -93,4 +98,10 @@ class BookModel(db.Model):
             'product_id': product_id
         }
         db.session.query(cls).filter_by(book_id=book_id).update(update_data)
+        db.session.commit()
+
+    # 按 book_id 修改 category_id
+    @classmethod
+    def update_book_category_id(cls, book_id, category_id):
+        db.session.query(cls).filter_by(book_id=book_id).update(category_id=category_id)
         db.session.commit()

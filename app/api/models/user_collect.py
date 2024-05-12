@@ -39,6 +39,6 @@ class CollectModel(db.Model):
 
     # 按 collect_id 删除
     @classmethod
-    def delete_by_collect_id(cls, collection_id):
+    def delete_by_collection_id(cls, collection_id):
         db.session.query(cls).filter_by(collection_id=collection_id).delete()
         db.session.commit()
