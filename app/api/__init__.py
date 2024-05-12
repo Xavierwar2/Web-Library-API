@@ -6,6 +6,7 @@ from .resources.comment import Comment, CommentList, CommentByUser, CommentByBoo
 from .resources.collect import Collect, CollectList
 from .resources.current_user import CurrentUser
 from .resources.email_login import EmailLogin
+from .resources.report import Report
 from .resources.user_register import UserRegister
 from .resources.user_login import UserLogin
 from .resources.logout import Logout
@@ -27,6 +28,7 @@ from .resources.captcha import Captcha
 api_blueprint = Blueprint('api', __name__, url_prefix="/")
 api = Api(api_blueprint)
 
+api.add_resource(Report, '/report')
 api.add_resource(CurrentUser, '/currentUser')
 api.add_resource(UserRegister, '/userRegister')
 api.add_resource(UserLogin, '/userLogin', '/userRefreshToken')
