@@ -38,9 +38,8 @@ class CategoryModel(db.Model):
 
     # 新增一条记录
     @classmethod
-    def add_book_category(cls, category_id, category_name):
+    def add_book_category(cls, category_name):
         book_category = cls(
-            category_id=category_id,
             category_name=category_name
         )
         db.session.add(book_category)
