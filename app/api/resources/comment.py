@@ -143,7 +143,14 @@ class CommentByUser(Resource):
         user_comment_list = CommentModel.find_by_user_id(user_id)
         result = []
         for user_comment in user_comment_list:
-            result.append(user_comment.dict())
+            user_comment_dict = user_comment.dict()
+            user_id = user_comment.user_id
+            book_id = user_comment.book_id
+            book_info = BookModel.find_by_book_id(book_id)
+            user_info = UserModel.find_by_user_id(user_id)
+            user_comment_dict.update({"username": user_info.username})
+            user_comment_dict.update({"book_name": book_info.book_name})
+            result.append(user_comment_dict)
 
         return res(data=result)
 
@@ -153,6 +160,13 @@ class CommentByBook(Resource):
         user_comment_list = CommentModel.find_by_book_id(book_id)
         result = []
         for user_comment in user_comment_list:
-            result.append(user_comment.dict())
+            user_comment_dict = user_comment.dict()
+            user_id = user_comment.user_id
+            book_id = user_comment.book_id
+            book_info = BookModel.find_by_book_id(book_id)
+            user_info = UserModel.find_by_user_id(user_id)
+            user_comment_dict.update({"username": user_info.username})
+            user_comment_dict.update({"book_name": book_info.book_name})
+            result.append(user_comment_dict)
 
         return res(data=result)
