@@ -111,30 +111,43 @@ class Borrow(Resource):
     # 这部分还没改完
     @jwt_required()
     def put(self, borrow_id):
-        parser = reqparse.RequestParser()
-        parser.add_argument('return_date', type=lambda x: datetime.strptime(x, '%Y-%m-%d'),
-                            help='Return date is required')
-        data = parser.parse_args()
+        jwt_data = get_jwt()
+        role = jwt_data['role']
 
-        try:
-            borrow_info = BorrowModel.find_by_borrow_id(borrow_id)
-            if not borrow_info:
-                return res(success=False, message="Borrow information not found", code=404)
+        # 管理员可以执行该操作
+        if role == 'admin':
+            parser = reqparse.RequestParser()
+            parser.add_argument('book_status', type=int)
+            parser.add_argument('is_renew', type=int)
+            data = parser.parse_args()
 
-            if data['return_date']:
-                borrow_info.return_date = data['return_date']
+            try:
+                borrow_info = BorrowModel.find_by_borrow_id(borrow_id)
+                if not borrow_info:
+                    return res(success=False, message="Borrow information not found", code=404)
 
-            borrow_info.book_status = 1
-            BorrowModel.update(borrow_info)
+                if data['is_renew'] == 1:
+                    borrow_info.return_time += timedelta(days=15)
+                    BorrowModel.update_borrow_info(borrow_info)
 
-            # Update book status
-            book_info = BookModel.find_by_id(borrow_info.book_id)
-            if not book_info:
-                return res(success=False, message="Book not found", code=404)
+                    return res(message="Return date updated successfully!")
 
-            book_info.current_number += 1
-            BookModel.update_book_info(book_info)
+                if borrow_info.book_status == 1:
+                    return res(success=False, message='Book is returned!', code=400)
 
-            return res(message="Return date updated successfully!")
-        except Exception as e:
-            return res(success=False, message="Error: {}".format(e), code=500)
+                # Update book status
+                if data['book_status'] == 1:
+                    book_info = BookModel.find_by_book_id(borrow_info.book_id)
+                    if not book_info:
+                        return res(success=False, message="Book not found", code=404)
+                    borrow_info.book_status = 1
+                    BorrowModel.update_borrow_info(borrow_info)
+                    book_info.current_number += 1
+                    BookModel.update_book_info(book_info)
+
+                    return res(message="Return book status successfully!")
+            except Exception as e:
+                return res(success=False, message="Error: {}".format(e), code=500)
+
+        else:
+            return res(success=False, message='Access denied.', code=403)
