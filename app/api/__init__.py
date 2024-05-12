@@ -1,6 +1,7 @@
 from flask import Blueprint
 from flask_restful import Api
 
+from .resources.QRCode import QRCode
 from .resources.admin_login import AdminLogin
 from .resources.comment import Comment, CommentList, CommentByUser, CommentByBook
 from .resources.collect import Collect, CollectList
@@ -19,7 +20,6 @@ from .resources.product import Product
 from .resources.product import ProductList
 from .resources.category import Category
 from .resources.category import CategoryList
-
 from .resources.admin import Admin, AdminList
 from .resources.borrow import BorrowList
 from .resources.borrow import Borrow
@@ -28,6 +28,7 @@ from .resources.captcha import Captcha
 api_blueprint = Blueprint('api', __name__, url_prefix="/")
 api = Api(api_blueprint)
 
+api.add_resource(QRCode, '/qrcode')
 api.add_resource(Report, '/report')
 api.add_resource(CurrentUser, '/currentUser')
 api.add_resource(UserRegister, '/userRegister')
