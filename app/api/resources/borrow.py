@@ -18,7 +18,14 @@ class BorrowList(Resource):
             borrow_info_list = BorrowModel.find_all()
             result = []
             for borrow_info in borrow_info_list:
-                result.append(borrow_info.dict())
+                borrow_info_dict = borrow_info.dict()
+                user_id = borrow_info.user_id
+                book_id = borrow_info.book_id
+                book_info = BookModel.find_by_book_id(book_id)
+                user_info = UserModel.find_by_user_id(user_id)
+                borrow_info_dict.update({"username": user_info.username})
+                borrow_info_dict.update({"book_name": book_info.book_name})
+                result.append(borrow_info_dict)
 
             return res(data=result)
 
@@ -65,7 +72,14 @@ class Borrow(Resource):
     def get(self, borrow_id):
         borrow_info = BorrowModel.find_by_borrow_id(borrow_id)
         if borrow_info:
-            return res(data=borrow_info.dict())
+            borrow_info_dict = borrow_info.dict()
+            user_id = borrow_info.user_id
+            book_id = borrow_info.book_id
+            book_info = BookModel.find_by_book_id(book_id)
+            user_info = UserModel.find_by_user_id(user_id)
+            borrow_info_dict.update({"username": user_info.username})
+            borrow_info_dict.update({"book_name": book_info.book_name})
+            return res(data=borrow_info_dict)
         else:
             return res(message="Borrow not found", code=404)
 
