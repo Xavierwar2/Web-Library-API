@@ -2,16 +2,25 @@ from flask_jwt_extended import jwt_required
 from flask_restful import Resource, reqparse
 from ..models.user_collect import CollectModel
 from ..schema.collect_sha import collect_args_valid
+from ..models.book_info import BookModel
+from ..models.user_info import UserModel
 from ..utils.format import res
 
 
 class Collect(Resource):
     @jwt_required()
     def get(self, user_id):
-        collect_info_list = CollectModel.find_by_user_id(user_id)
+        user_collect_list = CollectModel.find_by_user_id(user_id)
         result = []
-        for collect_info in collect_info_list:
-            result.append(collect_info.dict())
+        for user_collect in user_collect_list:
+            user_collect_dict = user_collect.dict()
+            user_id = user_collect.user_id
+            book_id = user_collect.book_id
+            book_info = BookModel.find_by_book_id(book_id)
+            user_info = UserModel.find_by_user_id(user_id)
+            user_collect_dict.update({"username": user_info.username})
+            user_collect_dict.update({"book_name": book_info.book_name})
+            result.append(user_collect_dict)
 
         return res(data=result)
 
