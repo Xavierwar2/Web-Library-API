@@ -36,8 +36,8 @@ class Collect(Resource):
     @jwt_required()
     def delete(self, collection_id):
         try:
-            CollectModel.delete_by_collect_id(collection_id)
-            return res(message='Book deleted successfully!')
+            CollectModel.delete_by_collection_id(collection_id)
+            return res(message='Collection deleted successfully!')
         except Exception as e:
             return res(success=False, message="Error: {}".format(e), code=500)
 
