@@ -77,8 +77,9 @@ class Borrow(Resource):
             book_id = borrow_info.book_id
             book_info = BookModel.find_by_book_id(book_id)
             user_info = UserModel.find_by_user_id(user_id)
-            borrow_info_dict.update({"username": user_info.username})
-            borrow_info_dict.update({"book_name": book_info.book_name})
+            if book_info and user_info:
+                borrow_info_dict.update({"username": user_info.username})
+                borrow_info_dict.update({"book_name": book_info.book_name})
             return res(data=borrow_info_dict)
         else:
             return res(message="Borrow not found", code=404)
@@ -164,8 +165,9 @@ class BorrowByUser(Resource):
             book_id = borrow_info.book_id
             book_info = BookModel.find_by_book_id(book_id)
             user_info = UserModel.find_by_user_id(user_id)
-            borrow_info_dict.update({"username": user_info.username})
-            borrow_info_dict.update({"book_name": book_info.book_name})
+            if book_info and user_info:
+                borrow_info_dict.update({"username": user_info.username})
+                borrow_info_dict.update({"book_name": book_info.book_name})
             result.append(borrow_info_dict)
 
         return res(data=result)

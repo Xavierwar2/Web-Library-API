@@ -18,8 +18,9 @@ class Collect(Resource):
             book_id = user_collect.book_id
             book_info = BookModel.find_by_book_id(book_id)
             user_info = UserModel.find_by_user_id(user_id)
-            user_collect_dict.update({"username": user_info.username})
-            user_collect_dict.update({"book_name": book_info.book_name})
+            if book_info and user_info:
+                user_collect_dict.update({"username": user_info.username})
+                user_collect_dict.update({"book_name": book_info.book_name})
             result.append(user_collect_dict)
 
         return res(data=result)

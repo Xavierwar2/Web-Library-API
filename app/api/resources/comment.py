@@ -25,9 +25,10 @@ class CommentList(Resource):
                 book_id = user_comment.book_id
                 book_info = BookModel.find_by_book_id(book_id)
                 user_info = UserModel.find_by_user_id(user_id)
-                user_comment_dict.update({"username": user_info.username})
-                user_comment_dict.update({"book_name": book_info.book_name})
-                result.append(user_comment_dict)
+                if book_info and user_info:
+                    user_comment_dict.update({"username": user_info.username})
+                    user_comment_dict.update({"book_name": book_info.book_name})
+                    result.append(user_comment_dict)
             return res(data=result)
 
         else:
@@ -89,8 +90,9 @@ class Comment(Resource):
                 book_id = user_comment.book_id
                 book_info = BookModel.find_by_book_id(book_id)
                 user_info = UserModel.find_by_user_id(user_id)
-                user_comment_dict.update({"username": user_info.username})
-                user_comment_dict.update({"book_name": book_info.book_name})
+                if book_info and user_info:
+                    user_comment_dict.update({"username": user_info.username})
+                    user_comment_dict.update({"book_name": book_info.book_name})
                 return res(data=user_comment_dict)
             else:
                 return res(message="Comment not found", code=404)
