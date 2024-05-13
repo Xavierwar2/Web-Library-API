@@ -36,7 +36,7 @@ class Report(Resource):
 
             borrow_info_list = BorrowModel.find_all()
             for borrow_info in borrow_info_list:
-                if borrow_info.book_status == 1:
+                if borrow_info.book_status == 0:
                     borrow_user_ids.add(borrow_info.user_id)
                 # 已还图书数
                 if borrow_info.book_status == 1:
