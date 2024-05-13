@@ -9,3 +9,6 @@ flask_sqlalchemy==3.1.1
 redis==5.0.4
 SQLAlchemy==2.0.29
 Werkzeug==3.0.3
+DateTime~=5.5
+qrcode~=7.4.2
+pillow~=10.3.0
