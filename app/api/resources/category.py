@@ -25,6 +25,9 @@ class CategoryList(Resource):
             parser.add_argument('category_name', type=str, required=True, help='Category name is required')
             data = parser.parse_args()
             category_name = data['category_name']
+            if CategoryModel.find_by_category_name(category_name):
+                return res(success=False, message="Repeated username!", code=400)
+
             new_category = CategoryModel(category_name=category_name)
             try:
                 new_category.add()
@@ -55,10 +58,10 @@ class Category(Resource):
             if category_info:
                 try:
                     CategoryModel.delete_category_info(category_id)
-                    book_category = BookModel.find_by_category_id(category_id)
-                    for book in book_category:
-                        book_id = book.book_id
-                        book.update_book_category_id(book_id, 0)
+                    book_info_list = BookModel.find_by_category_id(category_id)
+                    for book_info in book_info_list:
+                        book_info.category_id = 0
+                        BookModel.update_book_info(book_info)
                     return res(message="Category deleted successfully", code=200)
                 except Exception as e:
                     return res(success=False, message="Error: {}".format(e), code=500)

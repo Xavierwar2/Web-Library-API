@@ -98,9 +98,3 @@ class BookModel(db.Model):
         }
         db.session.query(cls).filter_by(book_id=book_info.book_id).update(update_data)
         db.session.commit()
-
-    # 按 book_id 修改 category_id
-    @classmethod
-    def update_book_category_id(cls, book_id, category_id):
-        db.session.query(cls).filter_by(book_id=book_id).update(category_id=category_id)
-        db.session.commit()

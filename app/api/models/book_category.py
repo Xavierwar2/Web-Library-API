@@ -41,6 +41,11 @@ class CategoryModel(db.Model):
     def find_by_category_id(cls, category_id):
         return db.session.query(cls).get(category_id)
 
+    # 按category_name查找
+    @classmethod
+    def find_by_category_name(cls, category_name):
+        return db.session.query(cls).filter_by(category_name=category_name).all()
+
     #  删除一项记录
     @classmethod
     def delete_category_info(cls, category_id):
