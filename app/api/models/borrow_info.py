@@ -52,6 +52,11 @@ class BorrowModel(db.Model):
     def find_by_borrow_id(cls, borrow_id):
         return db.session.query(cls).get(borrow_id)
 
+    # 按 user_id 查找
+    @classmethod
+    def find_by_user_id(cls, user_id):
+        return db.session.query(cls).filter_by(user_id=user_id).all()
+
     # 删除借阅项
     @classmethod
     def delete_by_borrow_id(cls, borrow_id):

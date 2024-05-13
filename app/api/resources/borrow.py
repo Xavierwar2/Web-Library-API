@@ -151,3 +151,21 @@ class Borrow(Resource):
 
         else:
             return res(success=False, message='Access denied.', code=403)
+
+
+class BorrowByUser(Resource):
+    @jwt_required()
+    def get(self, user_id):
+        borrow_info_list = BorrowModel.find_by_user_id(user_id)
+        result = []
+        for borrow_info in borrow_info_list:
+            borrow_info_dict = borrow_info.dict()
+            user_id = borrow_info.user_id
+            book_id = borrow_info.book_id
+            book_info = BookModel.find_by_book_id(book_id)
+            user_info = UserModel.find_by_user_id(user_id)
+            borrow_info_dict.update({"username": user_info.username})
+            borrow_info_dict.update({"book_name": book_info.book_name})
+            result.append(borrow_info_dict)
+
+        return res(data=result)

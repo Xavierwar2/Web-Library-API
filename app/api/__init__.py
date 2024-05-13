@@ -11,18 +11,12 @@ from .resources.report import Report
 from .resources.user_register import UserRegister
 from .resources.user_login import UserLogin
 from .resources.logout import Logout
-from .resources.user import UserList
-from .resources.user import User
-from .resources.user import UserByUsername
-from .resources.book import BookList
-from .resources.book import Book
-from .resources.product import Product
-from .resources.product import ProductList
-from .resources.category import Category
-from .resources.category import CategoryList
+from .resources.user import UserList, User, UserByUsername
+from .resources.book import BookList, Book
+from .resources.product import Product, ProductList
+from .resources.category import Category, CategoryList
 from .resources.admin import Admin, AdminList
-from .resources.borrow import BorrowList
-from .resources.borrow import Borrow
+from .resources.borrow import BorrowList, BorrowByUser, Borrow
 from .resources.captcha import Captcha
 
 api_blueprint = Blueprint('api', __name__, url_prefix="/")
@@ -43,6 +37,7 @@ api.add_resource(AdminList, '/adminInfo')
 api.add_resource(Admin, '/adminInfo/<int:admin_id>')
 api.add_resource(BorrowList, '/borrowInfo')
 api.add_resource(Borrow, '/borrowInfo/<int:borrow_id>')
+api.add_resource(BorrowByUser, '/borrowInfo/user/<int:user_id>')
 api.add_resource(Captcha, '/captcha')
 api.add_resource(BookList, '/bookInfo')
 api.add_resource(Book, '/bookInfo/<int:book_id>')
