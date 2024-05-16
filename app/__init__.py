@@ -19,7 +19,7 @@ from .api.models.user_comment import CommentModel
 from .api.models.book_info import BookModel
 from .api.models.book_category import CategoryModel
 from .api.models.book_product import ProductModel
-from .api.models.borrow_info import BorrowModel
+from .api.models.notice_info import NoticeModel
 
 
 def create_app(config_name):

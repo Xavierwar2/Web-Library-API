@@ -18,6 +18,7 @@ from .resources.category import Category, CategoryList
 from .resources.admin import Admin, AdminList
 from .resources.borrow import BorrowList, BorrowByUser, Borrow
 from .resources.captcha import Captcha
+from .resources.notice import NoticeList
 
 api_blueprint = Blueprint('api', __name__, url_prefix="/")
 api = Api(api_blueprint)
@@ -51,3 +52,4 @@ api.add_resource(CommentByUser, '/comment/user/<int:user_id>')
 api.add_resource(CommentByBook, '/comment/book/<int:book_id>')
 api.add_resource(Collect, '/collect/user/<int:user_id>', '/collect/<int:collection_id>', '/collect')
 api.add_resource(CollectList, '/collect')
+api.add_resource(NoticeList, '/noticeInfo')
