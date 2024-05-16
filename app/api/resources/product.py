@@ -35,7 +35,7 @@ class ProductList(Resource):
             category_id = data['category_id']
             product_id = ProductModel.query.order_by(ProductModel.product_id.desc()).first().product_id + 1
             ProductModel.add_book_product(product_id, product_name, category_id)
-            return res(message="Product added successfully", status=201)
+            return res(message="Product added successfully")
         
         else:
             return res(success=False, message='Access denied.', code=403)
@@ -54,7 +54,7 @@ class Product(Resource):
             for book_product in book_product_list:
                 result.append(book_product.dict())
             return res(data=result)
-        return res(message="Product not found", status=404)
+        return res(success=False, message="Product not found", code=404)
 
     @jwt_required()
     def delete(self, product_id):
@@ -67,7 +67,7 @@ class Product(Resource):
             if product:
                 ProductModel.delete_product_info(product_id)
                 return res(message="Product deleted successfully")
-            return res(message="Product not found", status=404)
+            return res(success=False, message="Product not found", code=404)
 
         else:
             return res(success=False, message='Access denied.', code=403)
@@ -86,7 +86,7 @@ class Product(Resource):
             if product:
                 ProductModel.update(product_id, product_name, category_id)
                 return res(message="Product updated successfully")
-            return res(message="Product not found", status=404)
+            return res(success=False, message="Product not found", code=404)
 
         else:
             return res(success=False, message='Access denied.', code=403)
