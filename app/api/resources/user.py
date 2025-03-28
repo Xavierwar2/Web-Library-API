@@ -1,7 +1,6 @@
 import uuid
-
-from flask_restful import Resource, reqparse
-from flask_jwt_extended import jwt_required, get_jwt
+from flask_restful import reqparse
+from flask_jwt_extended import jwt_required
 from werkzeug.security import generate_password_hash
 
 from ..models.user_info import UserModel
@@ -9,121 +8,168 @@ from ..schema.user_sha import user_args_valid
 from ..utils import redis_captcha
 from ..utils.format import res
 from ..models.user_login import UserLoginModel
+from .base import BaseResource
+from ..extensions import cache
 
 
-class User(Resource):
+class User(BaseResource):
     @jwt_required()
+    @cache.memoize(300)
     def get(self, user_id):
-        user_info = UserModel.find_by_user_id(user_id)
-        if user_info:
-            return user_info.dict()
-        else:
+        """获取用户信息"""
+        try:
+            user_info = self.validate_exists(UserModel, user_id, 'user_id')
+            if user_info:
+                return user_info.dict()
             return res(message="User not found", code=404)
+        except Exception as e:
+            return self.handle_error(e)
 
     @jwt_required()
     def delete(self, user_id):
-        jwt_data = get_jwt()
-        role = jwt_data['role']
-        if role == 'admin':
+        """删除用户"""
+        @self.admin_required
+        def delete_user():
             try:
                 UserModel.delete_by_user_id(user_id)
                 UserLoginModel.delete_by_user_id(user_id)
+                # 清除缓存
+                cache.delete_memoized(self.get, user_id)
+                cache.delete('user_list')
                 return res(message='User deleted successfully!')
             except Exception as e:
-                return res(success=False, message="Error: {}".format(e), code=500)
-        else:
-            return res(success=False, message="Role must be admin")
+                return self.handle_error(e)
+        return delete_user()
 
     @jwt_required()
     def put(self, user_id):
+        """更新用户信息"""
+        try:
+            data = self._parse_user_args()
+            user_info = self.validate_exists(UserModel, user_id, 'user_id')
+            user_login = self.validate_exists(UserLoginModel, user_id, 'user_id')
+            
+            if not user_info or not user_login:
+                return res(success=False, message="User not found", code=404)
+            
+            # 检查用户名是否重复
+            if self._is_username_duplicate(data['username'], user_login.username):
+                return res(success=False, message="Repeated username!", code=400)
+            
+            # 处理密码更新
+            if data['password']:
+                self._update_password(user_id, data['password'], user_login)
+                return res(message="Update password successfully!")
+            
+            # 处理邮箱验证
+            if data['email'] and not self._verify_captcha(data['email'], data['captcha']):
+                return res(success=False, message='Invalid captcha!', code=400)
+            
+            # 更新用户信息
+            self._update_user_info(user_info, user_id, data)
+            
+            # 清除缓存
+            cache.delete_memoized(self.get, user_id)
+            cache.delete('user_list')
+            
+            return res(message="Update User successfully!")
+        except Exception as e:
+            return self.handle_error(e)
+
+    def _parse_user_args(self):
+        """解析用户参数"""
         parser = reqparse.RequestParser()
         user_args_valid(parser)
-        data = parser.parse_args()
-        try:
-            user_info = UserModel.find_by_user_id(user_id)
-            user_login = UserLoginModel.find_by_user_id(user_id)
-            if user_info and user_login:
-                username = data['username']
-                if username != user_login.username and UserLoginModel.find_by_username(username):
-                    return res(success=False, message="Repeated username!", code=400)
-                else:
-                    if data['password']:
-                        salt = uuid.uuid4().hex
-                        password = generate_password_hash('{}{}'.format(salt, data['password']))
-                        user_login.update_user(user_id, username, password, salt)
-                        return res(message="Update password successfully!")
+        return parser.parse_args()
 
-                    email = user_info.email
-                    if data['email']:
-                        email = data['email']
-                        captcha = redis_captcha.redis_get(email)
-                        if captcha is None or captcha != data['captcha']:
-                            return res(success=False, message='Invalid captcha!', code=400)
-                        else:
-                            redis_captcha.redis_delete(email)
+    def _is_username_duplicate(self, new_username, old_username):
+        """检查用户名是否重复"""
+        return new_username != old_username and UserLoginModel.find_by_username(new_username)
 
-                    sex = data['sex']
-                    age = data['age']
-                    status = data['status']
-                    image_url = data['image_url']
-                    user_info.update_user(user_id, username, email, sex, age, status, image_url)
-                    return res(message="Update User successfully!")
-            else:
-                return res(success=False, message="User not found", code=404)
-        except Exception as e:
-            return res(success=False, message="Error: {}".format(e), code=500)
+    def _update_password(self, user_id, password, user_login):
+        """更新用户密码"""
+        salt = uuid.uuid4().hex
+        hashed_password = generate_password_hash(f'{salt}{password}')
+        user_login.update_user(user_id, user_login.username, hashed_password, salt)
+
+    def _verify_captcha(self, email, captcha):
+        """验证邮箱验证码"""
+        stored_captcha = redis_captcha.redis_get(email)
+        if stored_captcha and stored_captcha == captcha:
+            redis_captcha.redis_delete(email)
+            return True
+        return False
+
+    def _update_user_info(self, user_info, user_id, data):
+        """更新用户基本信息"""
+        user_info.update_user(
+            user_id=user_id,
+            username=data['username'],
+            email=data['email'] or user_info.email,
+            sex=data['sex'],
+            age=data['age'],
+            status=data['status'],
+            image_url=data['image_url']
+        )
 
 
-class UserList(Resource):
+class UserList(BaseResource):
     @jwt_required()
+    @cache.cached(timeout=300, key_prefix='user_list')
     def get(self):
-        jwt_data = get_jwt()
-        role = jwt_data['role']
-        if role == 'admin':
-            user_info_list = UserModel.find_all()
-            result = []
-            for user_info in user_info_list:
-                result.append(user_info.dict())
-            return res(data=result)
-        else:
-            return res(success=False, message="Role must be admin", code=403)
+        """获取所有用户列表"""
+        @self.admin_required
+        def get_all_users():
+            try:
+                user_info_list = UserModel.find_all()
+                return res(data=[user_info.dict() for user_info in user_info_list])
+            except Exception as e:
+                return self.handle_error(e)
+        return get_all_users()
 
     @jwt_required()
     def delete(self):
-        jwt_data = get_jwt()
-        role = jwt_data['role']
-
-        # 管理员可以执行该操作
-        if role == 'admin':
+        """批量删除用户"""
+        @self.admin_required
+        def delete_users():
             try:
-                parser = reqparse.RequestParser()
-                user_args_valid(parser)
-                data = parser.parse_args()
+                data = self._parse_user_args()
                 delete_list = data['delete_list']
-                # 根据提供的 ID 数组执行删除操作
+                
                 for user in delete_list:
                     user_id = user.get('user_id')
-                    UserModel.delete_by_user_id(user_id)
-                    UserLoginModel.delete_by_user_id(user_id)
+                    if user_id:
+                        UserModel.delete_by_user_id(user_id)
+                        UserLoginModel.delete_by_user_id(user_id)
+                        # 清除单个用户缓存
+                        cache.delete_memoized(User.get, User, user_id)
+                
+                # 清除用户列表缓存
+                cache.delete('user_list')
                 return res(message='Users deleted successfully!')
-
             except Exception as e:
-                return res(success=False, message="Error: {}".format(e), code=500)
+                return self.handle_error(e)
+        return delete_users()
 
-        else:
-            return res(success=False, message='Access denied.', code=403)
+    def _parse_user_args(self):
+        """解析用户参数"""
+        parser = reqparse.RequestParser()
+        user_args_valid(parser)
+        return parser.parse_args()
 
 
-class UserByUsername(Resource):
+class UserByUsername(BaseResource):
     @jwt_required()
+    @cache.memoize(300)
     def get(self, username):
-        jwt_data = get_jwt()
-        role = jwt_data['role']
-        if role == 'admin':
-            user_info = UserModel.find_by_username(username)
-            if user_info:
-                return user_info.dict()
-            else:
+        """通过用户名获取用户信息"""
+        @self.admin_required
+        def get_user_by_username():
+            try:
+                user_info = UserModel.find_by_username(username)
+                if user_info:
+                    return user_info.dict()
                 return res(message="User not found", code=404)
-        else:
-            return res(success=False, message='Access denied.', code=403)
+            except Exception as e:
+                return self.handle_error(e)
+        return get_user_by_username()
