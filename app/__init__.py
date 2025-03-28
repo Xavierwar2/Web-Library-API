@@ -1,8 +1,11 @@
 import os
-
-from flask import Flask
+import logging
+from logging.handlers import RotatingFileHandler
+import time
+from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import config
 from .api.models import db
@@ -27,20 +30,65 @@ def create_app(config_name):
     app = Flask(__name__)
     # 加载配置项
     app.config.from_object(config[config_name])
-    # 初始化数据库ORM
+    
+    # 配置日志
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    file_handler = RotatingFileHandler('logs/web-library.log', maxBytes=10240, backupCount=10)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('Web Library startup')
+    
+    # 请求前后钩子，用于性能监控
+    @app.before_request
+    def before_request():
+        request.start_time = time.time()
+
+    @app.after_request
+    def after_request(response):
+        # 添加安全相关的响应头
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        
+        # 记录请求处理时间
+        if hasattr(request, 'start_time'):
+            elapsed = time.time() - request.start_time
+            app.logger.info(f'Request to {request.path} took {elapsed:.2f}s')
+        return response
+
+    # 全局错误处理
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return jsonify({'message': '请求的资源不存在'}), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        app.logger.error(f'Server Error: {error}')
+        return jsonify({'message': '服务器内部错误'}), 500
+
+    @app.errorhandler(Exception)
+    def handle_exception(error):
+        app.logger.error(f'Unhandled Exception: {error}')
+        return jsonify({'message': '服务器发生未知错误'}), 500
+
+    # 支持代理服务器
+    app.wsgi_app = ProxyFix(app.wsgi_app)
+    
+    # 初始化各种扩展
     db.init_app(app)
-    # 初始化数据库ORM迁移插件
     migrate.init_app(app, db)
-    # 注册蓝图
     app.register_blueprint(api_blueprint)
-    # 初始化 JWT
     jwt = JWTManager(app)
-    # 注册 JWT 钩子
     register_jwt_hooks(jwt)
-    # 解决跨域
     CORS(app)
-    # 添加邮箱验证机制
     mail.init_app(app)
+    
     return app
 
 

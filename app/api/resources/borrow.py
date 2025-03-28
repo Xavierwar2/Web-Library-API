@@ -1,52 +1,40 @@
-from flask_restful import Resource, reqparse
-from flask_jwt_extended import jwt_required, get_jwt
+from flask_restful import reqparse
+from flask_jwt_extended import jwt_required
+from datetime import timedelta
 from ..models.book_info import BookModel
-from datetime import datetime, timedelta
 from ..models.borrow_info import BorrowModel
-from ..utils.format import res
 from ..models.user_info import UserModel
+from ..utils.format import res
+from .base import BaseResource
+from ..extensions import cache
 
-
-class BorrowList(Resource):
+class BorrowList(BaseResource):
     @jwt_required()
+    @cache.cached(timeout=300, key_prefix='borrow_list')
     def get(self):
-        jwt_data = get_jwt()
-        role = jwt_data['role']
-
-        # 管理员可以执行该操作
-        if role == 'admin':
-            borrow_info_list = BorrowModel.find_all()
-            result = []
-            for borrow_info in borrow_info_list:
-                borrow_info_dict = borrow_info.dict()
-                user_id = borrow_info.user_id
-                book_id = borrow_info.book_id
-                book_info = BookModel.find_by_book_id(book_id)
-                user_info = UserModel.find_by_user_id(user_id)
-                borrow_info_dict.update({"username": user_info.username})
-                borrow_info_dict.update({"book_name": book_info.book_name})
-                result.append(borrow_info_dict)
-
-            return res(data=result)
-
-        else:
-            return res(success=False, message='Access denied.', code=403)
+        """获取所有借阅信息"""
+        @self.admin_required
+        def get_all_borrows():
+            try:
+                borrow_info_list = BorrowModel.find_all()
+                result = []
+                for borrow_info in borrow_info_list:
+                    result.append(self._format_borrow_info(borrow_info))
+                return res(data=result)
+            except Exception as e:
+                return self.handle_error(e)
+        return get_all_borrows()
 
     @jwt_required()
     def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('user_id', type=int, required=True, help='User ID is required')
-        parser.add_argument('book_id', type=int, required=True, help='Book ID is required')
-        data = parser.parse_args()
-
+        """创建新的借阅记录"""
         try:
-            user_info = UserModel.find_by_user_id(data['user_id'])
-            book_info = BookModel.find_by_book_id(data['book_id'])
-            if not book_info:
-                return res(success=False, message="Book not found", code=404)
+            data = self._parse_borrow_args()
+            user_info = self.validate_exists(UserModel, data['user_id'], 'user_id')
+            book_info = self.validate_exists(BookModel, data['book_id'], 'book_id')
 
-            if not user_info:
-                return res(success=False, message="User not found", code=404)
+            if not book_info or not user_info:
+                return res(success=False, message="Book or user not found", code=404)
 
             if book_info.current_number <= 0:
                 return res(success=False, message="Book is not available for borrowing", code=400)
@@ -57,117 +45,166 @@ class BorrowList(Resource):
             )
             borrow_info.add()
 
-            # Update book status
+            # 更新图书状态
             book_info.borrow_count += 1
             book_info.current_number -= 1
             BookModel.update_book_info(book_info)
-
+            
+            # 清除缓存
+            cache.delete('borrow_list')
+            
             return res(message="Book borrowed successfully!")
         except Exception as e:
-            return res(success=False, message="Error: {}".format(e), code=500)
+            return self.handle_error(e)
+
+    def _parse_borrow_args(self):
+        """解析借阅参数"""
+        parser = reqparse.RequestParser()
+        parser.add_argument('user_id', type=int, required=True, help='User ID is required')
+        parser.add_argument('book_id', type=int, required=True, help='Book ID is required')
+        return parser.parse_args()
+
+    def _format_borrow_info(self, borrow_info):
+        """格式化借阅信息"""
+        borrow_info_dict = borrow_info.dict()
+        user_info = UserModel.find_by_user_id(borrow_info.user_id)
+        book_info = BookModel.find_by_book_id(borrow_info.book_id)
+        if book_info and user_info:
+            borrow_info_dict.update({
+                "username": user_info.username,
+                "book_name": book_info.book_name
+            })
+        return borrow_info_dict
 
 
-class Borrow(Resource):
+class Borrow(BaseResource):
     @jwt_required()
+    @cache.memoize(300)
     def get(self, borrow_id):
-        borrow_info = BorrowModel.find_by_borrow_id(borrow_id)
-        if borrow_info:
-            borrow_info_dict = borrow_info.dict()
-            user_id = borrow_info.user_id
-            book_id = borrow_info.book_id
-            book_info = BookModel.find_by_book_id(book_id)
-            user_info = UserModel.find_by_user_id(user_id)
-            if book_info and user_info:
-                borrow_info_dict.update({"username": user_info.username})
-                borrow_info_dict.update({"book_name": book_info.book_name})
-            return res(data=borrow_info_dict)
-        else:
-            return res(message="Borrow not found", code=404)
+        """获取单个借阅信息"""
+        try:
+            borrow_info = self.validate_exists(BorrowModel, borrow_id, 'borrow_id')
+            if not borrow_info:
+                return res(success=False, message="Borrow not found", code=404)
+            return res(data=self._format_borrow_info(borrow_info))
+        except Exception as e:
+            return self.handle_error(e)
 
     @jwt_required()
     def delete(self, borrow_id):
-        jwt_data = get_jwt()
-        role = jwt_data['role']
-
-        # 管理员可以执行该操作
-        if role == 'admin':
+        """删除借阅记录"""
+        @self.admin_required
+        def delete_borrow():
             try:
-                borrow_info = BorrowModel.find_by_borrow_id(borrow_id)
+                borrow_info = self.validate_exists(BorrowModel, borrow_id, 'borrow_id')
                 if not borrow_info:
                     return res(success=False, message="Borrow information not found", code=404)
 
-                book_info = BookModel.find_by_book_id(borrow_info.book_id)
+                book_info = self.validate_exists(BookModel, borrow_info.book_id, 'book_id')
                 if not book_info:
                     return res(success=False, message="Book not found", code=404)
 
                 BorrowModel.delete_by_borrow_id(borrow_id)
-
+                
+                # 清除缓存
+                cache.delete_memoized(self.get, borrow_id)
+                cache.delete('borrow_list')
+                
                 return res(message="Borrow information deleted successfully!")
             except Exception as e:
-                return res(success=False, message="Error: {}".format(e), code=500)
-
-        else:
-            return res(success=False, message='Access denied.', code=403)
+                return self.handle_error(e)
+        return delete_borrow()
 
     @jwt_required()
     def put(self, borrow_id):
-        jwt_data = get_jwt()
-        role = jwt_data['role']
-
-        # 管理员可以执行该操作
-        if role == 'admin':
-            parser = reqparse.RequestParser()
-            parser.add_argument('book_status', type=int)
-            parser.add_argument('is_renew', type=int)
-            data = parser.parse_args()
-
+        """更新借阅状态"""
+        @self.admin_required
+        def update_borrow():
             try:
-                print(borrow_id)
-                borrow_info = BorrowModel.find_by_borrow_id(borrow_id)
+                data = self._parse_update_args()
+                borrow_info = self.validate_exists(BorrowModel, borrow_id, 'borrow_id')
                 if not borrow_info:
                     return res(success=False, message="Borrow information not found", code=404)
 
                 if data['is_renew'] == 1:
-                    borrow_info.return_time += timedelta(days=15)
-                    BorrowModel.update_borrow_info(borrow_info)
-
-                    return res(message="Return date updated successfully!")
-
-                if borrow_info.book_status == 1:
-                    return res(success=False, message='Book is returned!', code=400)
-
-                # Update book status
-                if data['book_status'] == 1:
-                    book_info = BookModel.find_by_book_id(borrow_info.book_id)
-                    if not book_info:
-                        return res(success=False, message="Book not found", code=404)
-                    borrow_info.book_status = 1
-                    BorrowModel.update_borrow_info(borrow_info)
-                    book_info.current_number += 1
-                    BookModel.update_book_info(book_info)
-
-                    return res(message="Return book status successfully!")
+                    return self._handle_renewal(borrow_info)
+                elif data['book_status'] == 1:
+                    return self._handle_return(borrow_info)
+                
+                return res(success=False, message="Invalid operation", code=400)
             except Exception as e:
-                return res(success=False, message="Error: {}".format(e), code=500)
+                return self.handle_error(e)
+        return update_borrow()
 
-        else:
-            return res(success=False, message='Access denied.', code=403)
+    def _parse_update_args(self):
+        """解析更新参数"""
+        parser = reqparse.RequestParser()
+        parser.add_argument('book_status', type=int)
+        parser.add_argument('is_renew', type=int)
+        return parser.parse_args()
+
+    def _handle_renewal(self, borrow_info):
+        """处理续借"""
+        borrow_info.return_time += timedelta(days=15)
+        BorrowModel.update_borrow_info(borrow_info)
+        cache.delete_memoized(self.get, borrow_info.borrow_id)
+        return res(message="Return date updated successfully!")
+
+    def _handle_return(self, borrow_info):
+        """处理还书"""
+        if borrow_info.book_status == 1:
+            return res(success=False, message='Book is already returned!', code=400)
+
+        book_info = self.validate_exists(BookModel, borrow_info.book_id, 'book_id')
+        if not book_info:
+            return res(success=False, message="Book not found", code=404)
+
+        borrow_info.book_status = 1
+        BorrowModel.update_borrow_info(borrow_info)
+        book_info.current_number += 1
+        BookModel.update_book_info(book_info)
+        
+        # 清除缓存
+        cache.delete_memoized(self.get, borrow_info.borrow_id)
+        cache.delete('borrow_list')
+        
+        return res(message="Return book status successfully!")
+
+    def _format_borrow_info(self, borrow_info):
+        """格式化借阅信息"""
+        borrow_info_dict = borrow_info.dict()
+        user_info = UserModel.find_by_user_id(borrow_info.user_id)
+        book_info = BookModel.find_by_book_id(borrow_info.book_id)
+        if book_info and user_info:
+            borrow_info_dict.update({
+                "username": user_info.username,
+                "book_name": book_info.book_name
+            })
+        return borrow_info_dict
 
 
-class BorrowByUser(Resource):
+class BorrowByUser(BaseResource):
     @jwt_required()
+    @cache.memoize(300)
     def get(self, user_id):
-        borrow_info_list = BorrowModel.find_by_user_id(user_id)
-        result = []
-        for borrow_info in borrow_info_list:
-            borrow_info_dict = borrow_info.dict()
-            user_id = borrow_info.user_id
-            book_id = borrow_info.book_id
-            book_info = BookModel.find_by_book_id(book_id)
-            user_info = UserModel.find_by_user_id(user_id)
-            if book_info and user_info:
-                borrow_info_dict.update({"username": user_info.username})
-                borrow_info_dict.update({"book_name": book_info.book_name})
-            result.append(borrow_info_dict)
+        """获取用户的所有借阅信息"""
+        try:
+            borrow_info_list = BorrowModel.find_by_user_id(user_id)
+            result = []
+            for borrow_info in borrow_info_list:
+                result.append(self._format_borrow_info(borrow_info))
+            return res(data=result)
+        except Exception as e:
+            return self.handle_error(e)
 
-        return res(data=result)
+    def _format_borrow_info(self, borrow_info):
+        """格式化借阅信息"""
+        borrow_info_dict = borrow_info.dict()
+        user_info = UserModel.find_by_user_id(borrow_info.user_id)
+        book_info = BookModel.find_by_book_id(borrow_info.book_id)
+        if book_info and user_info:
+            borrow_info_dict.update({
+                "username": user_info.username,
+                "book_name": book_info.book_name
+            })
+        return borrow_info_dict
