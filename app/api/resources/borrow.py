@@ -109,7 +109,6 @@ class Borrow(Resource):
         else:
             return res(success=False, message='Access denied.', code=403)
 
-    # 这部分还没改完
     @jwt_required()
     def put(self, borrow_id):
         jwt_data = get_jwt()
@@ -123,6 +122,7 @@ class Borrow(Resource):
             data = parser.parse_args()
 
             try:
+                print(borrow_id)
                 borrow_info = BorrowModel.find_by_borrow_id(borrow_id)
                 if not borrow_info:
                     return res(success=False, message="Borrow information not found", code=404)
